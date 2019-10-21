@@ -1,0 +1,1648 @@
+BiocManager::install("methylKit")
+library(methylKit)
+library(VennDiagram)
+library(RColorBrewer)
+library(reshape2)
+library(pheatmap)
+library(ggplot2)
+library(GenomicFeatures)
+library(genomation)
+library(ChIPpeakAnno)
+library(mygene)
+
+
+getwd()
+setwd("~/Dropbox/EpiGBS/Bismark_out/Bismark_coverage_files/")
+file.list = list("A1.bismark.merged.cov","A2.bismark.merged.cov","A3.bismark.merged.cov","A4.bismark.merged.cov","A5.bismark.merged.cov","A6.bismark.merged.cov","A7.bismark.merged.cov","A9.bismark.merged.cov","A10.bismark.merged.cov","G9.bismark.merged.cov","H1.bismark.merged.cov","B1.bismark.merged.cov","B2.bismark.merged.cov","B3.bismark.merged.cov","B4.bismark.merged.cov","B5.bismark.merged.cov","B6.bismark.merged.cov","B7.bismark.merged.cov","B8.bismark.merged.cov",
+                 "D5.bismark.merged.cov","D6.bismark.merged.cov","D7.bismark.merged.cov","D8.bismark.merged.cov","D9.bismark.merged.cov","D10.bismark.merged.cov","H8.bismark.merged.cov","H4.bismark.merged.cov","E1.bismark.merged.cov","E2.bismark.merged.cov","E3.bismark.merged.cov","E4.bismark.merged.cov","E5.bismark.merged.cov","E6.bismark.merged.cov","E7.bismark.merged.cov","E8.bismark.merged.cov","E9.bismark.merged.cov","E10.bismark.merged.cov","H9.bismark.merged.cov","H5.bismark.merged.cov",
+                 "F1.bismark.merged.cov","F2.bismark.merged.cov","F3.bismark.merged.cov","F4.bismark.merged.cov","F6.bismark.merged.cov","F7.bismark.merged.cov","F8.bismark.merged.cov","F10.bismark.merged.cov","H10.bismark.merged.cov","H6.bismark.merged.cov","G1.bismark.merged.cov","G2.bismark.merged.cov","G3.bismark.merged.cov","G4.bismark.merged.cov","G5.bismark.merged.cov","G6.bismark.merged.cov","G7.bismark.merged.cov","G8.bismark.merged.cov",
+                 "B9.bismark.merged.cov","B10.bismark.merged.cov","G10.bismark.merged.cov","H2.bismark.merged.cov","C1.bismark.merged.cov","C2.bismark.merged.cov","C3.bismark.merged.cov","C4.bismark.merged.cov","C5.bismark.merged.cov","C6.bismark.merged.cov","C7.bismark.merged.cov","C8.bismark.merged.cov","C9.bismark.merged.cov","C10.bismark.merged.cov","H7.bismark.merged.cov","H3.bismark.merged.cov","D1.bismark.merged.cov","D2.bismark.merged.cov","D3.bismark.merged.cov","D4.bismark.merged.cov")
+
+
+
+All.myobj <- methRead(file.list, sample.id = list("LC1","LC2","LC3","LC4","LC5","LC6","LC7","LC9","LC10","LC11","LC12","LC13","LC14","LC15","LC16","LC17","LC18","LC19","LC20",
+                                                  "LF1","LF2","LF3","LF4","LF5","LF6","LF7","LF8","LF9","LF10","LF11","LF12","LF13","LF14","LF15","LF16","LF17","LF18","LF19","LF20",
+                                                  "SL3","SL4","SL5","SL6","SL8","SL9","SL10","SL12","SL13","SL14","SL15","SL16","SL17","SL18","SL19","SL20","SL21","SL22",
+                                                  "MI1","MI2","MI3","MI4","MI5","MI6","MI7","MI8","MI9","MI10","MI11","MI12","MI13","MI14","MI15","MI16","MI17","MI18","MI19","MI20"), 
+                  assembly = "cv3.0", pipeline = "bismarkCoverage",
+             treatment = c(
+               0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+               1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+               2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+               3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3), 
+              context = "CpG")
+
+
+popStructure <- methRead(file.list, sample.id = list("LC1","LC2","LC3","LC4","LC5","LC6","LC7","LC9","LC10","LC11","LC12","LC13","LC14","LC15","LC16","LC17","LC18","LC19","LC20",
+                                                     "LF1","LF2","LF3","LF4","LF5","LF6","LF7","LF8","LF9","LF10","LF11","LF12","LF13","LF14","LF15","LF16","LF17","LF18","LF19","LF20",
+                                                     "SL3","SL4","SL5","SL6","SL8","SL9","SL10","SL12","SL13","SL14","SL15","SL16","SL17","SL18","SL19","SL20","SL21","SL22",
+                                                     "MI1","MI2","MI3","MI4","MI5","MI6","MI7","MI8","MI9","MI10","MI11","MI12","MI13","MI14","MI15","MI16","MI17","MI18","MI19","MI20"), 
+                  assembly = "cv3.0", pipeline = "bismarkCoverage",
+                  treatment = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+                                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1), 
+                  context = "CpG")
+
+file.list.LC.MI = list("A1.bismark.merged.cov","A2.bismark.merged.cov","A3.bismark.merged.cov","A4.bismark.merged.cov","A5.bismark.merged.cov","A6.bismark.merged.cov","A7.bismark.merged.cov","A9.bismark.merged.cov","A10.bismark.merged.cov","G9.bismark.merged.cov","H1.bismark.merged.cov","B1.bismark.merged.cov","B2.bismark.merged.cov","B3.bismark.merged.cov","B4.bismark.merged.cov","B5.bismark.merged.cov","B6.bismark.merged.cov","B7.bismark.merged.cov","B8.bismark.merged.cov","B9.bismark.merged.cov","B10.bismark.merged.cov","G10.bismark.merged.cov","H2.bismark.merged.cov","C1.bismark.merged.cov","C2.bismark.merged.cov","C3.bismark.merged.cov","C4.bismark.merged.cov","C5.bismark.merged.cov","C6.bismark.merged.cov","C7.bismark.merged.cov","C8.bismark.merged.cov","C9.bismark.merged.cov","C10.bismark.merged.cov","H7.bismark.merged.cov","H3.bismark.merged.cov","D1.bismark.merged.cov","D2.bismark.merged.cov","D3.bismark.merged.cov","D4.bismark.merged.cov")
+
+LC_MI_myobj <- methRead(file.list.LC.MI, sample.id = list("LC1","LC2","LC3","LC4","LC5","LC6","LC7","LC9","LC10","LC11","LC12","LC13","LC14","LC15","LC16","LC17","LC18","LC19","LC20","MI1","MI2","MI3","MI4","MI5","MI6","MI7","MI8","MI9","MI10","MI11","MI12","MI13","MI14","MI15","MI16","MI17","MI18","MI19","MI20"), 
+                        assembly = "cv3.0", pipeline = "bismarkCoverage",
+                        treatment = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1), 
+                        context = "CpG")
+
+
+file.list.LC.LF = list("A1.bismark.merged.cov","A2.bismark.merged.cov","A3.bismark.merged.cov","A4.bismark.merged.cov","A5.bismark.merged.cov","A6.bismark.merged.cov","A7.bismark.merged.cov","A9.bismark.merged.cov","A10.bismark.merged.cov","G9.bismark.merged.cov","H1.bismark.merged.cov","B1.bismark.merged.cov","B2.bismark.merged.cov","B3.bismark.merged.cov","B4.bismark.merged.cov","B5.bismark.merged.cov","B6.bismark.merged.cov","B7.bismark.merged.cov","B8.bismark.merged.cov",
+                       "D5.bismark.merged.cov","D6.bismark.merged.cov","D7.bismark.merged.cov","D8.bismark.merged.cov","D9.bismark.merged.cov","D10.bismark.merged.cov","H8.bismark.merged.cov","H4.bismark.merged.cov","E1.bismark.merged.cov","E2.bismark.merged.cov","E3.bismark.merged.cov","E4.bismark.merged.cov","E5.bismark.merged.cov","E6.bismark.merged.cov","E7.bismark.merged.cov","E8.bismark.merged.cov","E9.bismark.merged.cov","E10.bismark.merged.cov","H9.bismark.merged.cov","H5.bismark.merged.cov")
+
+LC_LF_myobj <- methRead(file.list.LC.LF, sample.id = list("LC1","LC2","LC3","LC4","LC5","LC6","LC7","LC9","LC10","LC11","LC12","LC13","LC14","LC15","LC16","LC17","LC18","LC19","LC20","LF1","LF2","LF3","LF4","LF5","LF6","LF7","LF8","LF9","LF10","LF11","LF12","LF13","LF14","LF15","LF16","LF17","LF18","LF19","LF20"), 
+                        assembly = "cv3.0", pipeline = "bismarkCoverage",
+                        treatment = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1), 
+                        context = "CpG")
+
+file.list.LC.SL = list("A1.bismark.merged.cov","A2.bismark.merged.cov","A3.bismark.merged.cov","A4.bismark.merged.cov","A5.bismark.merged.cov","A6.bismark.merged.cov","A7.bismark.merged.cov","A9.bismark.merged.cov","A10.bismark.merged.cov","G9.bismark.merged.cov","H1.bismark.merged.cov","B1.bismark.merged.cov","B2.bismark.merged.cov","B3.bismark.merged.cov","B4.bismark.merged.cov","B5.bismark.merged.cov","B6.bismark.merged.cov","B7.bismark.merged.cov","B8.bismark.merged.cov","F1.bismark.merged.cov","F2.bismark.merged.cov","F3.bismark.merged.cov","F4.bismark.merged.cov","F6.bismark.merged.cov","F7.bismark.merged.cov","F8.bismark.merged.cov","F10.bismark.merged.cov","H10.bismark.merged.cov","H6.bismark.merged.cov","G1.bismark.merged.cov","G2.bismark.merged.cov","G3.bismark.merged.cov","G4.bismark.merged.cov","G5.bismark.merged.cov","G6.bismark.merged.cov","G7.bismark.merged.cov","G8.bismark.merged.cov")
+
+LC_SL_myobj <- methRead(file.list.LC.SL, sample.id = list("LC1","LC2","LC3","LC4","LC5","LC6","LC7","LC9","LC10","LC11","LC12","LC13","LC14","LC15","LC16","LC17","LC18","LC19","LC20","SL3","SL4","SL5","SL6","SL8","SL9","SL10","SL12","SL13","SL14","SL15","SL16","SL17","SL18","SL19","SL20","SL21","SL22"), 
+                        assembly = "cv3.0", pipeline = "bismarkCoverage",
+                        treatment = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1), 
+                        context = "CpG")
+
+
+file.list.LF.MI = list("D5.bismark.merged.cov","D6.bismark.merged.cov","D7.bismark.merged.cov","D8.bismark.merged.cov","D9.bismark.merged.cov","D10.bismark.merged.cov","H8.bismark.merged.cov","H4.bismark.merged.cov","E1.bismark.merged.cov","E2.bismark.merged.cov","E3.bismark.merged.cov","E4.bismark.merged.cov","E5.bismark.merged.cov","E6.bismark.merged.cov","E7.bismark.merged.cov","E8.bismark.merged.cov","E9.bismark.merged.cov","E10.bismark.merged.cov","H9.bismark.merged.cov","H5.bismark.merged.cov","B9.bismark.merged.cov","B10.bismark.merged.cov","G10.bismark.merged.cov","H2.bismark.merged.cov","C1.bismark.merged.cov","C2.bismark.merged.cov","C3.bismark.merged.cov","C4.bismark.merged.cov","C5.bismark.merged.cov","C6.bismark.merged.cov","C7.bismark.merged.cov","C8.bismark.merged.cov","C9.bismark.merged.cov","C10.bismark.merged.cov","H7.bismark.merged.cov","H3.bismark.merged.cov","D1.bismark.merged.cov","D2.bismark.merged.cov","D3.bismark.merged.cov","D4.bismark.merged.cov")
+
+LF_MI_myobj <- methRead(file.list.LF.MI, sample.id = list("LF1","LF2","LF3","LF4","LF5","LF6","LF7","LF8","LF9","LF10","LF11","LF12","LF13","LF14","LF15","LF16","LF17","LF18","LF19","LF20","MI1","MI2","MI3","MI4","MI5","MI6","MI7","MI8","MI9","MI10","MI11","MI12","MI13","MI14","MI15","MI16","MI17","MI18","MI19","MI20"), 
+                        assembly = "cv3.0", pipeline = "bismarkCoverage",
+                        treatment = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1), 
+                        context = "CpG")
+
+file.list.SL.MI = list("F1.bismark.merged.cov","F2.bismark.merged.cov","F3.bismark.merged.cov","F4.bismark.merged.cov","F6.bismark.merged.cov","F7.bismark.merged.cov","F8.bismark.merged.cov","F10.bismark.merged.cov","H10.bismark.merged.cov","H6.bismark.merged.cov","G1.bismark.merged.cov","G2.bismark.merged.cov","G3.bismark.merged.cov","G4.bismark.merged.cov","G5.bismark.merged.cov","G6.bismark.merged.cov","G7.bismark.merged.cov","G8.bismark.merged.cov",
+                       "B9.bismark.merged.cov","B10.bismark.merged.cov","G10.bismark.merged.cov","H2.bismark.merged.cov","C1.bismark.merged.cov","C2.bismark.merged.cov","C3.bismark.merged.cov","C4.bismark.merged.cov","C5.bismark.merged.cov","C6.bismark.merged.cov","C7.bismark.merged.cov","C8.bismark.merged.cov","C9.bismark.merged.cov","C10.bismark.merged.cov","H7.bismark.merged.cov","H3.bismark.merged.cov","D1.bismark.merged.cov","D2.bismark.merged.cov","D3.bismark.merged.cov","D4.bismark.merged.cov")
+
+SL_MI_myobj <- methRead(file.list.SL.MI, sample.id = list("SL3","SL4","SL5","SL6","SL8","SL9","SL10","SL12","SL13","SL14","SL15","SL16","SL17","SL18","SL19","SL20","SL21","SL22","MI1","MI2","MI3","MI4","MI5","MI6","MI7","MI8","MI9","MI10","MI11","MI12","MI13","MI14","MI15","MI16","MI17","MI18","MI19","MI20"), 
+                        assembly = "cv3.0", pipeline = "bismarkCoverage",
+                        treatment = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1), 
+                        context = "CpG")
+
+
+file.list.LF.SL = list("D5.bismark.merged.cov","D6.bismark.merged.cov","D7.bismark.merged.cov","D8.bismark.merged.cov","D9.bismark.merged.cov","D10.bismark.merged.cov","H8.bismark.merged.cov","H4.bismark.merged.cov","E1.bismark.merged.cov","E2.bismark.merged.cov","E3.bismark.merged.cov","E4.bismark.merged.cov","E5.bismark.merged.cov","E6.bismark.merged.cov","E7.bismark.merged.cov","E8.bismark.merged.cov","E9.bismark.merged.cov","E10.bismark.merged.cov","H9.bismark.merged.cov","H5.bismark.merged.cov","F1.bismark.merged.cov","F2.bismark.merged.cov","F3.bismark.merged.cov","F4.bismark.merged.cov","F6.bismark.merged.cov","F7.bismark.merged.cov","F8.bismark.merged.cov","F10.bismark.merged.cov","H10.bismark.merged.cov","H6.bismark.merged.cov","G1.bismark.merged.cov","G2.bismark.merged.cov","G3.bismark.merged.cov","G4.bismark.merged.cov","G5.bismark.merged.cov","G6.bismark.merged.cov","G7.bismark.merged.cov","G8.bismark.merged.cov")
+
+LF_SL_myobj <- methRead(file.list.LF.SL, sample.id = list("LF1","LF2","LF3","LF4","LF5","LF6","LF7","LF8","LF9","LF10","LF11","LF12","LF13","LF14","LF15","LF16","LF17","LF18","LF19","LF20","SL3","SL4","SL5","SL6","SL8","SL9","SL10","SL12","SL13","SL14","SL15","SL16","SL17","SL18","SL19","SL20","SL21","SL22"), 
+                        assembly = "cv3.0", pipeline = "bismarkCoverage",
+                        treatment = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1), 
+                        context = "CpG")
+
+
+#treatment1=LC;Treatment2=MI,Treatment3=LF,Treatment0=SL
+setwd("~/Dropbox/EpiGBS/METHYLKIT_FINAL_OUT/")
+#save(All.myobj,LC_MI_myobj,LC_SL_myobj,LC_LF_myobj,LF_SL_myobj,LF_MI_myobj,SL_MI_myobj,popStructure,file = "Methylkit_input.RData")
+ln = load(file='Methylkit_input.RData')
+
+
+All_s.pca=unite(All.myobj)
+popSt.pca=unite(popStructure)
+LC_MI.pca=unite(LC_MI_myobj)
+LC_LF.pca=unite(LC_LF_myobj)
+LC_SL.pca=unite(LC_SL_myobj)
+LF_MI.pca=unite(LF_MI_myobj)
+SL_MI.pca=unite(SL_MI_myobj)
+LF_SL.pca=unite(LF_SL_myobj)
+
+
+par(mfrow=c(1,1))
+clusterSamples(All_s.pca,plot=TRUE)
+clusterSamples(popSt.pca, plot = TRUE)
+clusterSamples(LC_MI.pca, plot = TRUE)
+clusterSamples(LC_LF.pca, plot = TRUE)
+clusterSamples(LC_SL.pca, plot = TRUE)
+clusterSamples(LF_MI.pca, plot = TRUE)
+clusterSamples(SL_MI.pca, plot = TRUE)
+clusterSamples(LF_SL.pca, plot = TRUE)
+
+
+PCASamples(All_s.pca)
+PCASamples(popSt.pca)
+PCASamples(LC_MI.pca)
+PCASamples(LC_LF.pca)
+PCASamples(LC_SL.pca)
+PCASamples(LF_MI.pca)
+PCASamples(SL_MI.pca)
+PCASamples(LF_SL.pca)
+
+
+All.filtered.myobj <- filterByCoverage(All.myobj, lo.count = 10,lo.perc = NULL, hi.count = NULL, hi.perc = 99.9)
+popStructur.filtered.myobj <- filterByCoverage(popStructure, lo.count = 10,lo.perc = NULL, hi.count =NULL, hi.perc = 99.9)
+LC_MI_myobj.filtered.myobj <- filterByCoverage(LC_MI_myobj, lo.count = 10,lo.perc = NULL, hi.count = NULL, hi.perc = 99.9)
+LC_LF_myobj.filtered.myobj <- filterByCoverage(LC_LF_myobj, lo.count = 10,lo.perc = NULL, hi.count = NULL, hi.perc = 99.9)
+LC_SL_myobj.filtered.myobj <- filterByCoverage(LC_SL_myobj, lo.count = 10,lo.perc = NULL, hi.count = NULL, hi.perc = 99.9)
+LF_MI_myobj.filtered.myobj <- filterByCoverage(LF_MI_myobj, lo.count = 10,lo.perc = NULL, hi.count = NULL, hi.perc = 99.9)
+SL_MI_myobj.filtered.myobj <- filterByCoverage(SL_MI_myobj, lo.count = 10,lo.perc = NULL, hi.count = NULL, hi.perc = 99.9)
+LF_SL_myobj.filtered.myobj <- filterByCoverage(LF_SL_myobj, lo.count = 10,lo.perc = NULL, hi.count = NULL, hi.perc = 99.9)
+
+All.filtered.myobj <- normalizeCoverage(All.filtered.myobj)
+popStructur.filtered.myobj <- normalizeCoverage(popStructur.filtered.myobj)
+LC_MI_myobj.filtered.myobj <- normalizeCoverage(LC_MI_myobj.filtered.myobj)
+LC_LF_myobj.filtered.myobj <- normalizeCoverage(LC_LF_myobj.filtered.myobj)
+LC_SL_myobj.filtered.myobj <- normalizeCoverage(LC_SL_myobj.filtered.myobj)
+LF_MI_myobj.filtered.myobj <- normalizeCoverage(LF_MI_myobj.filtered.myobj)
+SL_MI_myobj.filtered.myobj <- normalizeCoverage(SL_MI_myobj.filtered.myobj)
+LF_SL_myobj.filtered.myobj <- normalizeCoverage(LF_SL_myobj.filtered.myobj)
+
+All.tiles <- tileMethylCounts(All.filtered.myobj, win.size = 100,step.size = 100)
+popStructur.tiles <- tileMethylCounts(popStructur.filtered.myobj, win.size = 100,step.size = 100)
+LC_MI_myobj.tiles <- tileMethylCounts(LC_MI_myobj.filtered.myobj, win.size = 100,step.size = 100)
+LC_LF_myobj.tiles <- tileMethylCounts(LC_LF_myobj.filtered.myobj, win.size = 100,step.size = 100)
+LC_SL_myobj.tiles <- tileMethylCounts(LC_SL_myobj.filtered.myobj, win.size = 100,step.size = 100)
+LF_MI_myobj.tiles <- tileMethylCounts(LF_MI_myobj.filtered.myobj, win.size = 100,step.size = 100)
+SL_MI_myobj.tiles <- tileMethylCounts(SL_MI_myobj.filtered.myobj, win.size = 100,step.size = 100)
+LF_SL_myobj.tiles <- tileMethylCounts(LF_SL_myobj.filtered.myobj, win.size = 100,step.size = 100)
+
+All.Tiles <- unite(All.tiles, min.per.group = 8L)
+popStructur.Tiles <- unite(popStructur.tiles, min.per.group = 8L)
+LC_MI_myobj.Tiles <- unite(LC_MI_myobj.tiles, min.per.group = 8L)
+LC_LF_myobj.Tiles <- unite(LC_LF_myobj.tiles, min.per.group = 8L)
+LC_SL_myobj.Tiles <- unite(LC_SL_myobj.tiles, min.per.group = 8L)
+LF_MI_myobj.Tiles <- unite(LF_MI_myobj.tiles, min.per.group = 8L)
+SL_MI_myobj.Tiles <- unite(SL_MI_myobj.tiles, min.per.group = 8L)
+LF_SL_myobj.Tiles <- unite(LF_SL_myobj.tiles, min.per.group = 8L)
+
+clusterSamples(All.Tiles,plot = TRUE)
+clusterSamples(popStructur.Tiles, plot = TRUE)
+clusterSamples(LC_MI_myobj.Tiles, plot = TRUE)
+clusterSamples(LC_LF_myobj.Tiles, plot = TRUE)
+clusterSamples(LC_SL_myobj.Tiles, plot = TRUE)
+clusterSamples(LF_MI_myobj.Tiles, plot = TRUE)
+clusterSamples(SL_MI_myobj.Tiles, plot = TRUE)
+clusterSamples(LF_SL_myobj.Tiles, plot = TRUE)
+
+
+All.pool_diffM_Tiles=calculateDiffMeth(All.Tiles)
+popSt.diffMeth_Tiles=calculateDiffMeth(popStructur.Tiles)
+LC_MI.diffMeth_Tiles=calculateDiffMeth(LC_MI_myobj.Tiles)
+LC_LF.diffMeth_Tiles=calculateDiffMeth(LC_LF_myobj.Tiles)
+LC_SL.diffMeth_Tiles=calculateDiffMeth(LC_SL_myobj.Tiles)
+LF_MI.diffMeth_Tiles=calculateDiffMeth(LF_MI_myobj.Tiles)
+SL_MI.diffMeth_Tiles=calculateDiffMeth(SL_MI_myobj.Tiles)
+LF_SL.diffMeth_Tiles=calculateDiffMeth(LF_SL_myobj.Tiles)
+
+dim(All_diffM_Tiles)
+dim(LC_MI.diffMeth_Tiles)
+dim(LC_LF.diffMeth_Tiles)
+dim(LC_SL.diffMeth_Tiles)
+dim(LF_MI.diffMeth_Tiles)
+dim(SL_MI.diffMeth_Tiles)
+dim(LF_SL.diffMeth_Tiles)
+
+
+PCAout <- PCASamples(All_s.pca,screeplot=FALSE, adj.lim=c(0.04,0.1),
+           scale=T,center=F,comp=c(1,2),transpose=T,sd.filter=T,
+           sd.threshold=.57,filterByQuantile=T,obj.return=T)
+
+PCA_sdev <- PCAout$sdev
+PCA_coord <- as.data.frame(PCAout$x)
+
+PCA_sig <- PCA_sdev/(sum(PCA_sdev))
+head(PCA_sig) #Significance of each Principle component
+sum(PCA_sig) # Will equal 1
+
+samples_described <- read.csv("~/Dropbox/EpiGBS/samples_described.csv")
+
+Site <- as.factor(samples_described$Site)
+sal <- as.factor(samples_described$X10day_salinity)
+
+colors <- rep(c("blue3","orange","forestgreen","orchid4"))
+points <- c(21,22,23,24)
+par(mar=c(5,6,4,5)+0.1, xpd=TRUE)
+
+plot(PCA_coord[,1] , PCA_coord[,2],type = "p",pch=points[Site],col=c("darkgrey"), bg=colors[Site],xlab= "PC1 (34.8%)", ylab ="PC2 (23.4%)", cex=2,cex.axis=2,cex.lab = 2)
+legend("topright", inset=c(-.225,-.05), legend=levels(Site), pch=points, cex =1.9, col=c("darkgrey"),pt.bg = colors,  ncol=1, bty = "n")
+ordispider(PCA_coord,choices=c(1,2),Site,col=c("blue3","orange","forestgreen","orchid4"), label = F,cex=1.5,lwd=1)
+ordiellipse(PCA_coord,choices=c(1,2),Site, col.axis = 'blue', col.lab = 'red',label=F,cex=1.5,lwd=2.5,kind="sd",border=c("blue3","orange","forestgreen","orchid4"),col=c("blue3","orange","forestgreen","orchid4"),alpha=20,draw = "polygon")
+ordihull(PCA_coord,choices=c(1,2),Site, col.axis = 'blue', col.lab = 'red',label=F,cex=1.5,lwd=2.5,kind="sd",border=c("blue3","orange","forestgreen","orchid4"),col=c("blue3","orange","forestgreen","orchid4"),alpha=20,draw = "polygon")
+
+
+plot(PCA_coord[,1], PCA_coord[,2], type="n",xlim=c(-10,4),ylim=c(-4,6))
+ordihull(PCA_coord,choices=c(1,2),Site, col=1:4, lwd=3)
+ordiellipse(PCA_coord,choices=c(1,2),Site, col=1:4, kind = "ehull", lwd=3)
+ordiellipse(PCA_coord,choices=c(1,2),Site, col=1:4, draw="polygon")
+ordispider(PCA_coord,choices=c(1,2),Site, col=1:4, label = TRUE)
+points(PCA_coord,choices=c(1,2),pch=21, col="red", bg="yellow", cex=1.3)
+
+
+dim(All_s.pca)
+
+
+Cov_data <- getData(All.Tiles)
+Cov <- Cov_data[ , grepl( "coverage" , names( Cov_data ) ) ]
+Cs_input <- Cov_data[ , grepl( "numCs" , names( Cov_data ) ) ]
+input <- Cs_input/Cov
+head(input)
+colnames(input) <- c("LC1","LC2","LC3","LC4","LC5","LC6","LC7","LC9","LC10","LC11","LC12","LC13","LC14","LC15","LC16","LC17","LC18","LC19","LC20","LF1","LF2","LF3","LF4","LF5","LF6","LF7","LF8","LF9","LF10","LF11","LF12","LF13","LF14","LF15","LF16","LF17","LF18","LF19","LF20","SL3","SL4","SL5","SL6","SL8","SL9","SL10","SL12","SL13","SL14","SL15","SL16","SL17","SL18","SL19","SL20","SL21","SL22","MI1","MI2","MI3","MI4","MI5","MI6","MI7","MI8","MI9","MI10","MI11","MI12","MI13","MI14","MI15","MI16","MI17","MI18","MI19","MI20")
+dim(input)
+
+dds.pcoa=pcoa(vegdist(t(input),na.rm=T,method="euclidean"))
+scores=dds.pcoa$vectors
+head(scores)
+# Calculate the percent of variance explained by first two axes
+percent <- dds.pcoa$values$Eigenvalues
+cumulative_percent_variance <- percent / sum(percent)
+cumulative_percent_variance
+sum(cumulative_percent_variance[1:2])
+
+##Run both of these bevause adonis adds terms sequentially, notice
+
+adonis2(t(input)~Site,na.rm=T,method="euclidean",permutations = 10000)  
+
+ordiplot(scores,label=T)
+ordiellipse(scores,as.factor(Site),label=T)
+
+write.csv(All.pool_diffM_Tiles, "All_Diff_100_tile.csv",quote=F)
+write.csv(popSt.diffMeth_Tiles, "LCSL_LFMI_Diff_100_tile.csv",quote=F)
+write.csv(LC_MI.diffMeth_Tiles, "LC_MI_Diff_100_tile.csv",quote=F)
+write.csv(LC_LF.diffMeth_Tiles, "LC_SL_Diff_100_tile.csv",quote=F)
+write.csv(LC_SL.diffMeth_Tiles, "LC_LF_Diff_100_tile.csv",quote=F)
+write.csv(LF_MI.diffMeth_Tiles, "LF_MI_Diff_100_tile.csv",quote=F)
+write.csv(SL_MI.diffMeth_Tiles, "LF_SL_Diff_100_tile.csv",quote=F)
+write.csv(LF_SL.diffMeth_Tiles, "SL_MI_Diff_100_tile.csv",quote=F)
+write.csv(LF.gravid.diffMeth_Tiles, "LF_Gracid_Diff_100_tile.csv",quote=F)
+#
+setwd("~/Dropbox/EpiGBS/METHYLKIT_FINAL_OUT/")
+#save(All.pool_diffM_Tiles,popSt.diffMeth_Tiles,LC_MI.diffMeth_Tiles,LC_LF.diffMeth_Tiles,LC_SL.diffMeth_Tiles,LF_MI.diffMeth_Tiles,SL_MI.diffMeth_Tiles,LF_SL.diffMeth_Tiles,file = "Methylkit_diffMeth_output.RData")
+ln = load(file="Methylkit_diffMeth_output.RData")
+
+All.15_sig = getMethylDiff(All.pool_diffM_Tiles,difference=15,qvalue=0.05)
+dim(All.15_sig)
+#0 DMRs
+popSt.15_sig =getMethylDiff(popSt.diffMeth_Tiles,difference=15,qvalue=0.05)
+dim(popSt.15_sig)
+#282 DMRs
+LC_MI.15_sig =getMethylDiff(LC_MI.diffMeth_Tiles,difference=15,qvalue=0.05)
+dim(LC_MI.15_sig)
+#103 DMRs
+LC_LF.15_sig =getMethylDiff(LC_LF.diffMeth_Tiles,difference=15,qvalue=0.05)
+dim(LC_LF.15_sig)
+#60 DMRs
+LC_SL.15_sig =getMethylDiff(LC_SL.diffMeth_Tiles,difference=15,qvalue=0.05)
+dim(LC_SL.15_sig)
+#54 DMRs
+LF_MI.15_sig =getMethylDiff(LF_MI.diffMeth_Tiles,difference=15,qvalue=0.05)
+dim(LF_MI.15_sig)
+#130 DMRs
+SL_MI.15_sig =getMethylDiff(SL_MI.diffMeth_Tiles,difference=15,qvalue=0.05)
+dim(SL_MI.15_sig)
+#48 DMRs
+LF_SL.15_sig =getMethylDiff(LF_SL.diffMeth_Tiles,difference=15,qvalue=0.05)
+dim(LF_SL.15_sig)
+#38 DMRs
+
+DMRs <- c(0,282,103,60,54,130,48,38)
+#715 DMRs identified in total
+
+All.nonsig = getMethylDiff(All.pool_diffM_Tiles,difference=0,qvalue=1)
+dim(All.nonsig)
+
+
+popSt.nonsig =getMethylDiff(popSt.diffMeth_Tiles,difference=0,qvalue=1)
+dim(popSt.nonsig)
+#7172 Regions
+LC_MI.nonsig =getMethylDiff(LC_MI.diffMeth_Tiles,difference=0,qvalue=1)
+dim(LC_MI.nonsig)
+#2134 Regions
+LC_LF.nonsig =getMethylDiff(LC_LF.diffMeth_Tiles,difference=0,qvalue=1)
+dim(LC_LF.nonsig)
+#1588 Regions
+LC_SL.nonsig =getMethylDiff(LC_SL.diffMeth_Tiles,difference=0,qvalue=1)
+dim(LC_SL.nonsig)
+#917 Regions
+LF_MI.nonsig =getMethylDiff(LF_MI.diffMeth_Tiles,difference=0,qvalue=1)
+dim(LF_MI.nonsig)
+#2972 Regions
+SL_MI.nonsig =getMethylDiff(SL_MI.diffMeth_Tiles,difference=0,qvalue=1)
+dim(SL_MI.nonsig)
+#1289 Regions
+LF_SL.nonsig =getMethylDiff(LF_SL.diffMeth_Tiles,difference=0,qvalue=1)
+dim(LF_SL.nonsig)
+#1068 Regions
+
+Regions <- c(7172,2134,1588,917,2972,1289,1068)
+mean(Regions)
+mean(DMRs)
+100*(89/2448)
+
+PopSt_sig <- as(popSt.15_sig,"GRanges")
+LC_MI_sig <- as(LC_MI.15_sig,"GRanges")
+LC_LF_sig <- as(LC_LF.15_sig,"GRanges")
+LC_SL_sig <- as(LC_SL.15_sig,"GRanges")
+LF_MI_sig <- as(LF_MI.15_sig,"GRanges")
+LF_SL_sig <- as(SL_MI.15_sig,"GRanges")
+SL_MI_sig <- as(LF_SL.15_sig,"GRanges")
+
+
+LC_MI_nonsig <- as(LC_MI.nonsig,"GRanges")
+LC_LF_nonsig <- as(LC_LF.nonsig,"GRanges")
+LC_SL_nonsig <- as(LC_SL.nonsig,"GRanges")
+LF_MI_nonsig <- as(LF_MI.nonsig,"GRanges")
+LF_SL_nonsig <- as(SL_MI.nonsig,"GRanges")
+SL_MI_nonsig <- as(LF_SL.nonsig,"GRanges")
+
+
+LCMI_NS <- getData(LC_MI.nonsig)
+LCLF_NS <- getData(LC_LF.nonsig)
+LCSL_NS <- getData(LC_SL.nonsig)
+LFMI_NS <- getData(LF_MI.nonsig)
+LFSL_NS <- getData(LF_SL.nonsig)
+SLMI_NS <- getData(SL_MI.nonsig)
+
+
+LCMI_NS$Loci <- paste(LCMI_NS$chr,LCMI_NS$start,LCMI_NS$end,sep=".")
+LCLF_NS$Loci <- paste(LCLF_NS$chr,LCLF_NS$start,LCLF_NS$end,sep=".")
+LCSL_NS$Loci <- paste(LCSL_NS$chr,LCSL_NS$start,LCSL_NS$end,sep=".")
+LFMI_NS$Loci <- paste(LFMI_NS$chr,LFMI_NS$start,LFMI_NS$end,sep=".")
+LFSL_NS$Loci <- paste(LFSL_NS$chr,LFSL_NS$start,LFSL_NS$end,sep=".")
+SLMI_NS$Loci <- paste(SLMI_NS$chr,SLMI_NS$start,SLMI_NS$end,sep=".")
+
+MI_NS_all <- merge(LCMI_NS,LFMI_NS,by="Loci",all=T)
+MI_NS_all2 <- merge(MI_NS_all,SLMI_NS,by="Loci",all=T)
+dim(MI_NS_all2)
+#3639
+LC_NS_all <- merge(LCMI_NS,LCLF_NS,by="Loci",all=T)
+LC_NS_all2 <- merge(LC_NS_all,LCSL_NS,by="Loci",all=T)
+dim(LC_NS_all2)
+#2176
+LF_NS_all <- merge(LFMI_NS,LCLF_NS,by="Loci",all=T)
+LF_NS_all2 <- merge(LF_NS_all,LFSL_NS,by="Loci",all=T)
+dim(LF_NS_all2)
+#3007
+SL_NS_all <- merge(LCSL_NS,LFSL_NS,by="Loci",all=T)
+SL_NS_all2 <- merge(SL_NS_all,SLMI_NS,by="Loci",all=T)
+All_NS <- merge(MI_NS_all2,LC_NS_all2,by="Loci",all=T)
+colnames(All_NS) <- c("Loci","chr.1","start.1","end.1","strand.1","pvalue.1","qvalue.1","LCMI.meth.diff.1",
+                   "chr.2","start.2","end.2","strand.2","pvalue.2","qvalue.2","LFMI.meth.diff.2","chr.3" ,       
+                   "start.3","end.3","strand.3","pvalue.3","qvalue.3","SLMI.meth.diff.3","chr.4","start.4" ,   
+                   "end.4","strand.4","pvalue.4","qvalue.4","LCMI.meth.diff.4","chr.5","start.5","end.5",  
+                   "strand.5","pvalue.5","qvalue.5","LCLF.meth.diff.5","chr.6","start.6","end.6","strand.6",     
+                   "pvalue.6","qvalue.6","LCSL.meth.diff.6"  )
+All_NS2 <- merge(All_NS,LF_NS_all2,by="Loci",all=T)
+All_NS2 <- merge(All_NS2,SL_NS_all2,by="Loci",all=T)
+colnames(All_NS2)
+colnames(All_NS2) <- c("Loci","chr.1","start.1","end.1","strand.1","pvalue.1","qvalue.1","LCMI.meth.diff.1",
+                       "chr.2","start.2","end.2","strand.2","pvalue.2","qvalue.2","LFMI.meth.diff.2","chr.3" ,       
+                       "start.3","end.3","strand.3","pvalue.3","qvalue.3","SLMI.meth.diff.3","chr.4","start.4" ,   
+                       "end.4","strand.4","pvalue.4","qvalue.4","LCMI.meth.diff.4","chr.5","start.5","end.5",  
+                       "strand.5","pvalue.5","qvalue.5","LCLF.meth.diff.5","chr.6","start.6","end.6","strand.6",     
+                       "pvalue.6","qvalue.6","LCSL.meth.diff.6",
+                       "chr.7","start.7","end.7","strand.7","pvalue.7","qvalue.7","LFMI.meth.diff",
+                       "chr.8","start.8","end.8","strand.8","pvalue.8","qvalue.8","LCLF.meth.diff","chr.9" ,       
+                       "start.9","end.9","strand.9","pvalue.9","qvalue.9","LFSL.meth.diff","chr.10","start.10" ,   
+                       "end.10","strand.10","pvalue.10","qvalue.1O","LCSL.meth.diff","chr.11","start.11","end.11",  
+                       "strand.11","pvalue.11","qvalue.11","LFSL.meth.diff","chr.12","start.12","end.12","strand.12",     
+                       "pvalue.12","qvalue.12","SLMI.meth.diff")
+dim(All_NS2)
+#3643 total Loci
+colnames(All_NS2)
+All_NS3 <- All_NS2[,c(1,8,15,22,36,43,64)]
+head(All_NS3)
+All_NS3_keep <- complete.cases(All_NS3)
+All_NS4 <- All_NS3[All_NS3_keep,]
+dim(All_NS4)
+library(limma)
+
+plotMDS(All_NS4[,c(2:7)])
+
+?percMethylation
+test <- percMethylation(SL_MI.obj)
+
+All_s.perc <- percMethylation(All_s.pca)
+popSt.perc <- percMethylation(popSt.pca)
+LC_MI.perc <- percMethylation(LC_MI.pca)
+LC_LF.perc <- percMethylation(LC_LF.pca)
+LC_SL.perc <- percMethylation(LC_SL.pca)
+LF_MI.perc <- percMethylation(LF_MI.pca)
+SL_MI.perc <- percMethylation(SL_MI.pca)
+LF_SL.perc <- percMethylation(LF_SL.pca)
+
+head(All_s.perc)
+head(popSt.perc)
+head(LC_MI.perc)
+head(LC_LF.perc)
+head(LC_SL.perc)
+head(LF_MI.perc)
+head(SL_MI.perc)
+head(LF_SL.perc)
+
+
+dim(LCMI_NS)
+#2134
+dim(LCLF_NS)
+#1588
+dim(LCSL_NS)
+#917
+dim(LFMI_NS)
+#2972
+dim(LFSL_NS)
+#1068
+dim(SLMI_NS)
+#1289
+
+All_vd <- venn.diagram(x = list("MI (n=3,639)" = MI_NS_all2$Loci,
+                                   "LC (n=2,176)" = LC_NS_all2$Loci,
+                                   "LF (n=3,007)" = LF_NS_all2$Loci,
+                                   "SL (n=1,311)" = SL_NS_all2$Loci),
+                          fill = brewer.pal(3, "Set2")[1:4], filename = NULL, cex= 2,cat.cex=1.5)
+
+
+All_olap <- calculate.overlap(x = list("MI (n=3,639)" = MI_NS_all2$Loci,
+                                       "LC (n=2,176)" = LC_NS_all2$Loci,
+                                       "LF (n=3,007)" = LF_NS_all2$Loci,
+                                       "SL (n=1,311)" = SL_NS_all2$Loci))
+shared <- (All_olap$a6)
+head(shared)
+
+head(All_NS2)
+row.names(All_NS2) <- All_NS2$Loci
+All_NS3 <- All_NS2[shared,]
+head(All_NS3)
+
+LF_All_vd <- venn.diagram(x = list("LF_MI (n=2,972)" = LFMI_NS$Loci,
+                                   "LF_SL (n=1,068)" = LFSL_NS$Loci,
+                                   "LF_LC (n=1,588)" = LCLF_NS$Loci),
+                          fill = brewer.pal(3, "Set2")[1:3], filename = NULL, cex= 2,cat.cex=1.5)
+
+LC_All_vd <- venn.diagram(x = list("LC_MI (n=2,134)" = LCMI_NS$Loci,
+                                   "LC_LF (n=1,588)" = LCLF_NS$Loci,
+                                   "LC_SL (n=917)" = LCSL_NS$Loci),
+                          fill = brewer.pal(3, "Set2")[1:3], filename = NULL, cex= 2,cat.cex=1.5)
+
+MI_All_vd <- venn.diagram(x = list("MI_LC (n=2,134)" = LCMI_NS$Loci,
+                                   "MI_LF (n=2,972)" = LFMI_NS$Loci,
+                                   "MI_SL (n=1,289)" = SLMI_NS$Loci),
+                          fill = brewer.pal(3, "Set2")[1:3], filename = NULL, cex= 2,cat.cex=1.5)
+
+SL_All_vd <- venn.diagram(x = list("SL_LC (n=635)" = LCSL_NS$Loci,
+                                   "SL_LF (n=790)" = LFSL_NS$Loci,
+                                   "SL_MI (n=951)" = SLMI_NS$Loci),
+                          fill = brewer.pal(3, "Set2")[1:3], filename = NULL, cex= 2,cat.cex=1.5)
+
+grid.newpage();
+grid.draw(LF_All_vd)
+grid.newpage();
+grid.draw(LC_All_vd)
+grid.newpage();
+grid.draw(MI_All_vd)
+grid.newpage();
+grid.draw(SL_All_vd)
+grid.newpage();
+grid.draw(All_vd)
+
+
+LCMI_Sig <- getData(LC_MI.15_sig)
+LCLF_Sig <- getData(LC_LF.15_sig)
+LCSL_Sig <- getData(LC_SL.15_sig)
+LFMI_Sig <- getData(LF_MI.15_sig)
+LFSL_Sig <- getData(LF_SL.15_sig)
+SLMI_Sig <- getData(SL_MI.15_sig)
+
+
+LCMI_Sig$Loci <- paste(LCMI_Sig$chr,LCMI_Sig$start,LCMI_Sig$end,sep=".")
+LCLF_Sig$Loci <- paste(LCLF_Sig$chr,LCLF_Sig$start,LCLF_Sig$end,sep=".")
+LCSL_Sig$Loci <- paste(LCSL_Sig$chr,LCSL_Sig$start,LCSL_Sig$end,sep=".")
+LFMI_Sig$Loci <- paste(LFMI_Sig$chr,LFMI_Sig$start,LFMI_Sig$end,sep=".")
+LFSL_Sig$Loci <- paste(LFSL_Sig$chr,LFSL_Sig$start,LFSL_Sig$end,sep=".")
+SLMI_Sig$Loci <- paste(SLMI_Sig$chr,SLMI_Sig$start,SLMI_Sig$end,sep=".")
+
+MI_all <- merge(LCMI_Sig,LFMI_Sig,by="Loci",all=T)
+MI_all2 <- merge(MI_all,SLMI_Sig,by="Loci",all=T)
+dim(MI_all2)
+dim(MI_NS_all2)
+#253 DMRs out of  3639 Loci
+#100*(253/3639)
+#6.952% of loci DMR
+
+LC_all <- merge(LCMI_Sig,LCLF_Sig,by="Loci",all=T)
+LC_all2 <- merge(LC_all,LCSL_Sig,by="Loci",all=T)
+dim(LC_all2)
+dim(LC_NS_all2)
+test <- complete.cases(LC_all2)
+table(test)
+#174 DMRs out of 2176 Loci
+#100*(174/2176)
+#7.996% of loci DMR
+
+LF_all <- merge(LFMI_Sig,LCLF_Sig,by="Loci",all=T)
+LF_all2 <- merge(LF_all,LFSL_Sig,by="Loci",all=T)
+dim(LF_all2)
+test <- complete.cases(LF_all2)
+table(test)
+dim(LF_NS_all2)
+#201 DMRs out of 3007 Loci
+#100*(201/3007)
+#6.684% of loci DMR
+
+SL_all <- merge(LCSL_Sig,LFSL_Sig,by="Loci",all=T)
+SL_all2 <- merge(SL_all,SLMI_Sig,by="Loci",all=T)
+dim(SL_all2)
+test <- complete.cases(SL_all2)
+table(test)
+dim(SL_NS_all2)
+#111 out of 1311 Loci
+#100*(111/1311)
+#8.467% of loci DMR
+
+
+All_DMRs <- merge(MI_all2,LC_all2,by="Loci",all=T)
+colnames(All_DMRs) <- c("Loci","chr.1","start.1","end.1","strand.1","pvalue.1","qvalue.1","meth.diff.1",
+                      "chr.2","start.2","end.2","strand.2","pvalue.2","qvalue.2","meth.diff.2","chr.3" ,       
+                      "start.3","end.3","strand.3","pvalue.3","qvalue.3","meth.diff.3","chr.4","start.4" ,   
+                      "end.4","strand.4","pvalue.4","qvalue.4","meth.diff.4","chr.5","start.5","end.5",  
+                      "strand.5","pvalue.5","qvalue.5","meth.diff.5","chr.6","start.6","end.6","strand.6",     
+                      "pvalue.6","qvalue.6","meth.diff.6")
+All_DMRs2 <- merge(All_DMRs,LF_all2,by="Loci",all=T)
+All_DMRs2 <- merge(All_DMRs2,SL_all2,by="Loci",all=T)
+dim(All_DMRs2)
+#312 DMRs in total
+#3646 Loci included
+#100*(312/3646)
+#8.557% of Loci Diffentially methylated
+
+head(All_DMRs2)
+
+All_vd <- venn.diagram(x = list("MI (n=253)" = MI_all2$Loci,
+                                "LC (n=174)" = LC_all2$Loci,
+                                "LF (n=201)" = LF_all2$Loci,
+                                "SL (n=111)" = SL_all2$Loci),
+                       fill = brewer.pal(3, "Set2")[1:4], filename = NULL, cex= 2,cat.cex=1.5)
+
+LF_All_vd <- venn.diagram(x = list("LF_MI (n=130)" = LFMI_Sig$Loci,
+                                   "LF_SL (n=38)" = LFSL_Sig$Loci,
+                                   "LF_LC (n=60)" = LCLF_Sig$Loci),
+                          fill = brewer.pal(3, "Set2")[1:3], filename = NULL, cex= 2,cat.cex=1.5)
+
+LC_All_vd <- venn.diagram(x = list("LC_MI (n=103)" = LCMI_Sig$Loci,
+                                   "LC_LF (n=60)" = LCLF_Sig$Loci,
+                                   "LC_SL (n=54)" = LCSL_Sig$Loci),
+                          fill = brewer.pal(3, "Set2")[1:3], filename = NULL, cex= 2,cat.cex=1.5)
+
+MI_All_vd <- venn.diagram(x = list("MI_LC (n=103)" = LCMI_Sig$Loci,
+                                   "MI_LF (n=130)" = LFMI_Sig$Loci,
+                                   "MI_SL (n=48)" = SLMI_Sig$Loci),
+                          fill = brewer.pal(3, "Set2")[1:3], filename = NULL, cex= 2,cat.cex=1.5)
+
+SL_All_vd <- venn.diagram(x = list("SL_LC (n=54)" = LCSL_Sig$Loci,
+                                   "SL_LF (n=38)" = LFSL_Sig$Loci,
+                                   "SL_MI (n=48)" = SLMI_Sig$Loci),
+                          fill = brewer.pal(3, "Set2")[1:3], filename = NULL, cex= 2,cat.cex=1.5)
+
+grid.newpage();
+grid.draw(LF_All_vd)
+grid.newpage();
+grid.draw(LC_All_vd)
+grid.newpage();
+grid.draw(MI_All_vd)
+grid.newpage();
+grid.draw(SL_All_vd)
+grid.newpage();
+grid.draw(All_vd)
+
+#write.csv(popSt.nonsig, "popSt.nonsig_100_tile.csv",quote=F)
+#write.csv(LC_MI.nonsig, "LC_MI.nonsig_100_tile.csv",quote=F)
+#write.csv(LC_LF.nonsig, "LC_LF.nonsig_100_tile.csv",quote=F)
+#write.csv(LC_SL.nonsig, "LC_SL.nonsig_100_tile.csv",quote=F)
+#write.csv(LF_MI.nonsig, "LF_MI.nonsig_100_tile.csv",quote=F)
+#write.csv(SL_MI.nonsig, "SL_MI.nonsig_100_tile.csv",quote=F)
+#write.csv(LF_SL.nonsig, "LF_SL.nonsig_100_tile.csv",quote=F)
+
+LCMI_hypo_keep <- LCMI_Sig$meth.diff <=0
+LCLF_hypo_keep <- LCLF_Sig$meth.diff <=0
+LCSL_hypo_keep <- LCSL_Sig$meth.diff <=0
+LFMI_hypo_keep <- LFMI_Sig$meth.diff <=0
+LFSL_hypo_keep <- LFSL_Sig$meth.diff <=0
+SLMI_hypo_keep <- SLMI_Sig$meth.diff <=0
+
+LCMI_hypr_keep <- LCMI_Sig$meth.diff >0
+LCLF_hypr_keep <- LCLF_Sig$meth.diff >0
+LCSL_hypr_keep <- LCSL_Sig$meth.diff >0
+LFMI_hypr_keep <- LFMI_Sig$meth.diff >0
+LFSL_hypr_keep <- LFSL_Sig$meth.diff >0
+SLMI_hypr_keep <- SLMI_Sig$meth.diff >0
+
+LCMI_hypo_sig <- LCMI_Sig[LCMI_hypo_keep,]
+LCLF_hypo_sig <- LCLF_Sig[LCLF_hypo_keep,]
+LCSL_hypo_sig <- LCSL_Sig[LCSL_hypo_keep,]
+LFMI_hypo_sig <- LFMI_Sig[LFMI_hypo_keep,]
+LFSL_hypo_sig <- LFSL_Sig[LFSL_hypo_keep,]
+SLMI_hypo_sig <- SLMI_Sig[SLMI_hypo_keep,]
+
+MI_hypo <- merge(LCMI_hypo_sig,LFMI_hypo_sig,by="Loci",all=T)
+MI_hypo2 <- merge(MI_hypo,SLMI_hypo_sig,by="Loci",all=T)
+dim(MI_hypo2)
+dim(MI_all2)
+#98 DMRs out of 253 significant Loci were hypomethylated
+#100*(98/253)
+#38.73518% of DMRs are hypomethylated
+
+LC_hypo <- merge(LCMI_hypo_sig,LCLF_hypo_sig,by="Loci",all=T)
+LC_hypo2 <- merge(LC_hypo,LCSL_hypo_sig,by="Loci",all=T)
+dim(LC_hypo2)
+dim(LC_all2)
+#58 DMRs out of 147 significant Loci were hypomethylated
+#100*(58/147)
+#39.45578% of  DMRs are hypomethylated
+
+LF_hypo <- merge(LFMI_hypo_sig,LCLF_hypo_sig,by="Loci",all=T)
+LF_hypo2 <- merge(LF_hypo,LFSL_hypo_sig,by="Loci",all=T)
+dim(LF_hypo2)
+dim(LF_all2)
+#87 DMRs out of 201 Loci
+#100*(87/201)
+#43.28358% of  DMRs are hypomethylated
+
+SL_hypo <- merge(LCSL_hypo_sig,LFSL_hypo_sig,by="Loci",all=T)
+SL_hypo2 <- merge(SL_hypo,SLMI_hypo_sig,by="Loci",all=T)
+dim(SL_hypo2)
+dim(SL_all2)
+#53 out of 111 Loci
+#100*(53/111)
+#47.74775% of  DMRs are hypomethylated
+
+
+LCMI_hypr_sig <- LCMI_Sig[LCMI_hypr_keep,]
+LCLF_hypr_sig <- LCLF_Sig[LCLF_hypr_keep,]
+LCSL_hypr_sig <- LCSL_Sig[LCSL_hypr_keep,]
+LFMI_hypr_sig <- LFMI_Sig[LFMI_hypr_keep,]
+LFSL_hypr_sig <- LFSL_Sig[LFSL_hypr_keep,]
+SLMI_hypr_sig <- SLMI_Sig[SLMI_hypr_keep,]
+
+MI_hypr <- merge(LCMI_hypr_sig,LFMI_hypr_sig,by="Loci",all=T)
+MI_hypr2 <- merge(MI_hypr,SLMI_hypr_sig,by="Loci",all=T)
+dim(MI_hypr2)
+dim(MI_NS_all2)
+#156 DMRs out of 253 significant Loci were hyprmethylated
+#100*(156/253)
+#61.6% of DMRs are hyprmethylated
+
+LC_hypr <- merge(LCMI_hypr_sig,LCLF_hypr_sig,by="Loci",all=T)
+LC_hypr2 <- merge(LC_hypr,LCSL_hypr_sig,by="Loci",all=T)
+dim(LC_hypr2)
+dim(LC_all2)
+#117 DMRs out of 147 significant Loci were hyprmethylated
+#100*(117/147)
+#79.59184% of  DMRs are hyprmethylated
+
+LF_hypr <- merge(LFMI_hypr_sig,LCLF_hypr_sig,by="Loci",all=T)
+LF_hypr2 <- merge(LF_hypr,LFSL_hypr_sig,by="Loci",all=T)
+dim(LF_hypr2)
+dim(LF_all2)
+#136 DMRs out of 201 Loci
+#100*(136/201)
+#67.66169% of  DMRs are hyprmethylated
+
+SL_hypr <- merge(LCSL_hypr_sig,LFSL_hypr_sig,by="Loci",all=T)
+SL_hypr2 <- merge(SL_hypr,SLMI_hypr_sig,by="Loci",all=T)
+dim(SL_hypr2)
+dim(SL_all2)
+#77 out of 111 Loci
+#100*(77/111)
+#69.36937% of  DMRs are hyprmethylated
+
+
+colnames(All_DMRs2) <- c("Loci","chr.1","start.1","end.1","strand.1","pvalue.1","qvalue.1","LCMI.meth.diff.1",
+                         "chr.2","start.2","end.2","strand.2","pvalue.2","qvalue.2","LFMI.meth.diff.2","chr.3" ,       
+                         "start.3","end.3","strand.3","pvalue.3","qvalue.3","SLMI.meth.diff.3","chr.4","start.4" ,   
+                         "end.4","strand.4","pvalue.4","qvalue.4","LCMI.meth.diff.4","chr.5","start.5","end.5",  
+                         "strand.5","pvalue.5","qvalue.5","LCLF.meth.diff.5","chr.6","start.6","end.6","strand.6",     
+                         "pvalue.6","qvalue.6","LCSL.meth.diff.6",
+                         "chr.7","start.7","end.7","strand.7","pvalue.7","qvalue.7","LFMI.meth.diff",
+                         "chr.8","start.8","end.8","strand.8","pvalue.8","qvalue.8","LCLF.meth.diff","chr.9" ,       
+                         "start.9","end.9","strand.9","pvalue.9","qvalue.9","LFSL.meth.diff","chr.10","start.10" ,   
+                         "end.10","strand.10","pvalue.10","qvalue.1O","LCSL.meth.diff","chr.11","start.11","end.11",  
+                         "strand.11","pvalue.11","qvalue.11","LFSL.meth.diff","chr.12","start.12","end.12","strand.12",     
+                         "pvalue.12","qvalue.12","SLMI.meth.diff")
+
+
+head(All_DMRs2)
+All_DMR_final <- All_DMRs2[,c(8,15,22,36,43,64)]
+head(All_DMR_final)
+All_DMR_final <- ifelse(All_DMR_final < 0,-1,1)
+All_DMR_final[is.na(All_DMR_final)] <- 0
+colnames(All_DMR_final) <- c("LCMI","LFMI","SLMI","LCLF","LCSL","LFSL")
+library(limma)
+par(mfrow=c(2,2))
+vennDiagram(All_DMR_final[,c(1:3)], include=c("up","down"), names=NULL, mar=rep(1,4), cex=c(1.5,1,0.7), lwd=1,
+            circle.col=c( "#66C2A5","#FC8D62","#8DA0CB"), counts.col=NULL, show.include=NULL,main="Vermillion Bay")
+vennDiagram(All_DMR_final[,c(1,4,5)], include=c("up","down"), names=NULL, mar=rep(1,4), cex=c(1.5,1,0.7), lwd=1,
+            circle.col=c("#66C2A5","#E78AC3","#A6D854" ), counts.col=NULL, show.include=NULL,main="Lake Calcasieu")
+vennDiagram(All_DMR_final[,c(2,4,6)], include=c("up","down"), names=NULL, mar=rep(1,4), cex=c(1.5,1,0.7), lwd=1,
+            circle.col=c("#FC8D62","#E78AC3","#FFD92F"), counts.col=NULL, show.include=NULL,main="Lake Fortuna")
+vennDiagram(All_DMR_final[,c(3,5,6)], include=c("up","down"), names=NULL, mar=rep(1,4), cex=c(1.5,1,0.7), lwd=1,
+            circle.col=c("#8DA0CB","#A6D854", "#FFD92F"), counts.col=NULL, show.include=NULL,main="Sister Lake")
+
+
+Popsi_per_chr = diffMethPerChr(popSt.diffMeth_Tiles,plot = TRUE,qvalue.cutoff = 0.05, meth.cutoff =15)
+LC_MI_per_chr = diffMethPerChr(LC_MI.diffMeth_Tiles,plot = TRUE,qvalue.cutoff = 0.05, meth.cutoff =15)
+LC_LF_per_chr = diffMethPerChr(LC_LF.diffMeth_Tiles,plot = TRUE,qvalue.cutoff = 0.05, meth.cutoff =15)
+LC_SL_per_chr = diffMethPerChr(LC_SL.diffMeth_Tiles,plot = TRUE,qvalue.cutoff = 0.05, meth.cutoff =15)
+LF_MI_per_chr = diffMethPerChr(LF_MI.diffMeth_Tiles,plot = TRUE,qvalue.cutoff = 0.05, meth.cutoff =15)
+LF_SL_per_chr = diffMethPerChr(SL_MI.diffMeth_Tiles,plot = TRUE,qvalue.cutoff = 0.05, meth.cutoff =15)
+SL_MI_per_chr = diffMethPerChr(LF_SL.diffMeth_Tiles,plot = TRUE,qvalue.cutoff = 0.05, meth.cutoff =15)
+
+#Use the GFF file available from NCBI GCF_002022765.2_C_virginica-3.0_genomic.gff
+#Cvirginica_txDB <- makeTxDbFromGFF("~/Dropbox/CVirginica_genome/GCF_002022765.2_C_virginica-3.0_genomic.gff")
+#saveDb(Cvirginica_txDB, file="Cvirginica_txDB.sqlite")
+
+Cvirginica_txDB <- loadDb("Cvirginica_txDB.sqlite")
+CVirginica_ref <-asBED(Cvirginica_txDB)
+
+PopSt_nonsig_achr <-assignChromosomeRegion(PopSt_nonsig, nucleotideLevel=FALSE, 
+                                      precedence=c("Promoters", "immediateDownstream", 
+                                                   "fiveUTRs", "threeUTRs", 
+                                                   "Exons", "Introns"), 
+                                      TxDb=Cvirginica_txDB)
+
+pie(PopSt_nonsig_achr$percentage, las=3)
+
+pdf(file = "Popsig_methylation barplot_percent_nonsig.pdf", width = 12, height = 9);
+Z <- barplot(PopSt_nonsig_achr$percentage, las=3,ylim=c(0,75),  main="Population_K3 Methylation Distribution")
+text(x = Z, y = PopSt_nonsig_achr$percentage, label = PopSt_nonsig_achr$percentage, pos = 3, cex = 0.8, col = "red")
+
+dev.off()
+
+
+PopSt_sig_achr <-assignChromosomeRegion(PopSt_sig, nucleotideLevel=T, 
+                                        precedence=c("Promoters", "immediateDownstream", 
+                                                     "fiveUTRs", "threeUTRs", 
+                                                     "Exons", "Introns"), 
+                                        TxDb=Cvirginica_txDB)
+
+pdf(file = "Popsig_methylation barplot_percent_sig.pdf", width = 12, height = 9);
+Z <- barplot(PopSt_sig_achr$percentage, las=3,ylim=c(0,75),  main="Population_K3 Significantly Diff Methylated")
+text(x = Z, y = round(PopSt_sig_achr$percentage,digits = 3), label = PopSt_sig_achr$percentage, pos = 3, cex = 0.8, col = "red")
+
+dev.off()
+
+
+par(mfrow=c(1,2))
+par(margin(t=1,r=1,b=2,l=1))
+PopSt_sig_achr_per<- PopSt_sig_achr$percentage
+head(PopSt_sig_achr_per)
+PopSt_sig_achr_number_tiles <- (PopSt_sig_achr_per/100)*24
+
+Names <- names(PopSt_sig_achr_per)
+PopSt_sig_pct <- round(PopSt_sig_achr_per, digits = 2)
+PopSt_nonsig_achr_per<- PopSt_nonsig_achr$percentage
+Names <- names(PopSt_nonsig_achr_per)
+PopSt_nonsig_pct <- round(PopSt_nonsig_achr_per, digits = 2)
+PopSt_nonsig_achr_number_tiles <- (PopSt_nonsig_achr_per/100)*1917
+
+Z <- barplot(PopSt_nonsig_pct, las=3,ylim=c(0,45),  main="Population_K3 Methylation Distribution",cex.names = 0.5,ylab = "Frequency")
+text(x = Z, y = PopSt_nonsig_pct, label = PopSt_nonsig_achr_number_tiles, pos = 3, cex = 0.5, col = "red")
+Z <- barplot(PopSt_sig_pct, las=3,ylim=c(0,45),  main="Population_K3 Significantly Diff Methylated",cex.names = 0.5)
+text(x = Z, y = PopSt_sig_pct, label = PopSt_sig_achr_number_tiles, pos = 3, cex = 0.5, col = "red")
+
+
+LC_MI_sig_achr <-assignChromosomeRegion(LC_MI_sig, nucleotideLevel=FALSE, 
+                                        precedence=c("Promoters", "immediateDownstream", 
+                                                     "fiveUTRs", "threeUTRs", 
+                                                     "Exons", "Introns"), 
+                                        TxDb=Cvirginica_txDB)
+
+pdf(file = "barplot_percent_sig_LC_v_MI.pdf", width = 12, height = 9);
+Z <- barplot(LC_MI_sig_achr$percentage, las=3,ylim=c(0,75),  main="LC vs MI Significantly Diff Methylated")
+text(x = Z, y = LC_MI_sig_achr$percentage, label = LC_MI_sig_achr$percentage, pos = 3, cex = 0.8, col = "red")
+
+dev.off()
+pie(LC_MI_sig_achr$percentage, las=3)
+
+LC_LF_sig_achr <-assignChromosomeRegion(LC_LF_sig, nucleotideLevel=FALSE, 
+                                        precedence=c("Promoters", "immediateDownstream", 
+                                                     "fiveUTRs", "threeUTRs", 
+                                                     "Exons", "Introns"), 
+                                        TxDb=Cvirginica_txDB)
+pdf(file = "barplot_percent_sig_LC_v_LF.pdf", width = 12, height = 9);
+Z <- barplot(LC_LF_sig_achr$percentage, las=3,ylim=c(0,75),  main="LC vs LF Significantly Diff Methylated")
+text(x = Z, y = LC_LF_sig_achr$percentage, label = LC_LF_sig_achr$percentage, pos = 3, cex = 0.8, col = "red")
+dev.off()
+pie(LC_LF_sig_achr$percentage, las=3)
+
+LC_SL_sig_achr <-assignChromosomeRegion(LC_SL_sig, nucleotideLevel=FALSE, 
+                                        precedence=c("Promoters", "immediateDownstream", 
+                                                     "fiveUTRs", "threeUTRs", 
+                                                     "Exons", "Introns"), 
+                                        TxDb=Cvirginica_txDB)
+pdf(file = "barplot_percent_sig_LC_v_SL.pdf", width = 12, height = 9);
+Z <- barplot(LC_SL_sig_achr$percentage, las=3,ylim=c(0,75),  main="LC vs SL Significantly Diff Methylated")
+text(x = Z, y = LC_SL_sig_achr$percentage, label = LC_SL_sig_achr$percentage, pos = 3, cex = 0.8, col = "red")
+dev.off()
+pie(LC_SL_sig_achr$percentage, las=3)
+
+LF_MI_sig_achr <-assignChromosomeRegion(LF_MI_sig, nucleotideLevel=FALSE, 
+                                        precedence=c("Promoters", "immediateDownstream", 
+                                                     "fiveUTRs", "threeUTRs", 
+                                                     "Exons", "Introns"), 
+                                        TxDb=Cvirginica_txDB)
+pdf(file = "barplot_percent_sig_LF_v_MI.pdf", width = 12, height = 9);
+Z <- barplot(LF_MI_sig_achr$percentage, las=3,ylim=c(0,75),  main="LF vs MI Significantly Diff Methylated")
+text(x = Z, y = LF_MI_sig_achr$percentage, label = LF_MI_sig_achr$percentage, pos = 3, cex = 0.8, col = "red")
+dev.off()
+pie(LF_MI_sig_achr$percentage, las=3)
+
+LF_SL_sig_achr <-assignChromosomeRegion(LF_SL_sig, nucleotideLevel=FALSE, 
+                                        precedence=c("Promoters", "immediateDownstream", 
+                                                     "fiveUTRs", "threeUTRs", 
+                                                     "Exons", "Introns"), 
+                                        TxDb=Cvirginica_txDB)
+pdf(file = "barplot_percent_sig_LF_v_SL.pdf", width = 12, height = 9);
+Z <- barplot(LF_SL_sig_achr$percentage, las=3,ylim=c(0,75),  main="LF vs SL Significantly Diff Methylated")
+text(x = Z, y = LF_SL_sig_achr$percentage, label = LF_SL_sig_achr$percentage, pos = 3, cex = 0.8, col = "red")
+dev.off()
+pie(LF_SL_sig_achr$percentage, las=3)
+
+SL_MI_sig_achr <-assignChromosomeRegion(SL_MI_sig, nucleotideLevel=FALSE, 
+                            precedence=c("Promoters", "immediateDownstream", 
+                                         "fiveUTRs", "threeUTRs", 
+                                         "Exons", "Introns"), 
+                            TxDb=Cvirginica_txDB)
+pdf(file = "barplot_percent_sig_SL_v_MI.pdf", width = 12, height = 9);
+Z <- barplot(SL_MI_sig_achr$percentage, las=3, ylim=c(0,75),  main="SL vs MI Significantly Diff Methylated")
+text(x = Z, y = SL_MI_sig_achr$percentage, label = SL_MI_sig_achr$percentage, pos = 3, cex = 0.8, col = "red")
+dev.off()
+
+#Pie Charts
+
+PopSt_sig_achr_pie<- PopSt_sig_achr$percentage
+Names <- names(PopSt_sig_achr_pie)
+pct <- round(PopSt_sig_achr_pie, digits = 3)
+lbls <- paste(pct,"%",sep=" ") # ad % to labels 
+
+pdf(file = "pieplot_percent_sig_popk3.pdf", width = 12, height = 9);
+par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
+pie(PopSt_sig_achr_pie,
+    labels=lbls,
+    clockwise=TRUE,
+    col=brewer.pal(7,"Set3"),
+    border="white",
+    radius=1,
+    cex=0.8,
+    main="K3 Population Significantly Diff Methylated")
+legend("bottomright", legend=Names,bty="n",ncol=1,
+       fill=brewer.pal(7,"Set3"))
+dev.off()
+
+LC_MI_sig_achr_pie <- LC_MI_sig_achr$percentage
+Names <- names(LC_MI_sig_achr_pie)
+pct <- round(LC_MI_sig_achr_pie, digits = 3)
+lbls <- paste(pct,"%",sep=" ") # ad % to labels 
+
+pdf(file = "pieplot_percent_sig_LC_v_MI.pdf", width = 12, height = 9);
+par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
+pie(LC_MI_sig_achr_pie,
+    labels=lbls,
+    clockwise=TRUE,
+    col=brewer.pal(7,"Set3"),
+    border="white",
+    radius=1,
+    cex=0.8,
+    main="LC vs MI Significantly Diff Methylated")
+legend("bottomright", legend=Names,bty="n",ncol=1,
+       fill=brewer.pal(7,"Set3"))
+dev.off()
+
+LC_LF_sig_achr_pie <- LC_LF_sig_achr$percentage
+
+Names <- names(LC_LF_sig_achr_pie)
+pct <- round(LC_LF_sig_achr_pie, digits = 3)
+lbls <- paste(pct,"%",sep=" ") # ad % to labels 
+
+pdf(file = "pieplot_percent_sig_LC_v_LF.pdf", width = 12, height = 9);
+par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
+pie(LC_LF_sig_achr_pie,
+    labels=lbls,
+    clockwise=TRUE,
+    col=brewer.pal(7,"Set3"),
+    border="white",
+    radius=1,
+    cex=0.8,
+    main="LC vs LF Significantly Diff Methylated")
+legend("bottomright", legend=Names,bty="n",ncol=1,
+       fill=brewer.pal(7,"Set3"))
+dev.off()
+
+LC_SL_sig_achr_pie <- LC_SL_sig_achr$percentage
+
+Names <- names(LC_SL_sig_achr_pie)
+pct <- round(LC_SL_sig_achr_pie, digits = 3)
+lbls <- paste(pct,"%",sep=" ") # ad % to labels 
+pdf(file = "pieplot_percent_sig_LC_v_SL.pdf", width = 12, height = 9);
+par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
+pie(LC_SL_sig_achr_pie,
+    labels=lbls,
+    clockwise=TRUE,
+    col=brewer.pal(7,"Set3"),
+    border="white",
+    radius=1,
+    cex=0.8,
+    main="LC vs SL Significantly Diff Methylated")
+legend("bottomright", legend=Names,bty="n",ncol=1,
+       fill=brewer.pal(7,"Set3"))
+dev.off()
+
+LF_MI_sig_achr_pie <- LF_MI_sig_achr$percentage
+
+Names <- names(LF_MI_sig_achr_pie)
+pct <- round(LF_MI_sig_achr_pie, digits = 3)
+lbls <- paste(pct,"%",sep=" ") # ad % to labels 
+pdf(file = "pieplot_percent_sig_LF_v_MI.pdf", width = 12, height = 9);
+par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
+pie(LF_MI_sig_achr_pie,
+    labels=lbls,
+    clockwise=TRUE,
+    col=brewer.pal(7,"Set3"),
+    border="white",
+    radius=1,
+    cex=0.8,
+    main="LF vs MI Significantly Diff Methylated")
+legend("bottomright", legend=Names,bty="n",ncol=1,
+       fill=brewer.pal(7,"Set3"))
+dev.off()
+
+LF_SL_sig_achr_pie <- LF_SL_sig_achr$percentage
+
+Names <- names(LF_SL_sig_achr_pie)
+pct <- round(LF_SL_sig_achr_pie, digits = 3)
+lbls <- paste(pct,"%",sep=" ") # ad % to labels 
+pdf(file = "pieplot_percent_sig_LF_v_SL.pdf", width = 12, height = 9);
+par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
+pie(LF_SL_sig_achr_pie,
+    labels=lbls,
+    clockwise=TRUE,
+    col=brewer.pal(7,"Set3"),
+    border="white",
+    radius=1,
+    cex=0.8,
+    main="LF vs SL Significantly Diff Methylated")
+legend("bottomright",legend=Names,bty="n",ncol=1,
+       fill=brewer.pal(7,"Set3"))
+dev.off()
+
+SL_MI_sig_achr_pie <- SL_MI_sig_achr$percentage
+
+Names <- names(SL_MI_sig_achr_pie)
+pct <- round(SL_MI_sig_achr_pie, digits = 3)
+lbls <- paste(pct,"%",sep=" ") # ad % to labels 
+pdf(file = "pieplot_percent_sig_SL_v_MI.pdf", width = 12, height = 9);
+par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
+pie(SL_MI_sig_achr_pie,
+    labels=lbls,
+    clockwise=TRUE,
+    col=brewer.pal(7,"Set3"),
+    border="white",
+    radius=1,
+    cex=0.8,
+    main="SL vs MI Significantly Diff Methylated")
+legend("bottomright",legend=Names,bty="n",ncol=1,
+       fill=brewer.pal(7,"Set3"))
+dev.off()
+
+#Add Gene Product Annotation with probe and Diff_methylation_value
+
+CV_Gene_Annotations_Final <- read.delim("~/Dropbox/Kyle_TagSeq/CV_Gene_Annotations_Final.txt")
+colnames(CV_Gene_Annotations_Final)[1] <- c("ID")
+library(readr)
+All_probes <- read_delim("~/Dropbox/EpiGBS/METHYLKIT_FINAL_OUT/All_probes_Seqmonk.txt", "\t", escape_double = FALSE, trim_ws = TRUE)
+All_probes <- as.data.frame(All_probes)
+dim(All_probes)
+#7433 12
+All_probes$Start_real <- All_probes$Start -1
+All_probes$Positon <- paste(All_probes$Chromosome,All_probes$Start_real,All_probes$End, sep = "_")
+All_probes_annot <- merge(All_probes,CV_Gene_Annotations_Final, by ="ID",all.x=T)
+All_probes_GeneBody <- All_probes_annot[(All_probes_annot$`Feature Orientation` == "overlapping") | (All_probes_annot$`Feature Orientation` == "downstream") & All_probes_annot$Distance <= 2000 | (All_probes_annot$`Feature Orientation` == "upstream") & All_probes_annot$Distance <= 2000,]
+All_probes_GeneBody_GO_MWU_background <- All_probes_GeneBody[,c(2,24)]
+All_probes_GeneBody_GO_MWU_background <- unique(All_probes_GeneBody_GO_MWU_background)
+All_probes_GO_MWU <- All_probes_annot[,c(1,24)]
+All_probes_GO_MWU <- unique(All_probes_GO_MWU)
+All_probes$Loci <- paste(All_probes$Chromosome,All_probes$Start,All_probes$End,sep=".")
+Pairwise_background <- merge(All_NS2,All_probes,by="Loci")
+Pairwise_background <- merge(Pairwise_background,CV_Gene_Annotations_Final,by="ID",all.x=T)
+Pairwise_background_GeneBody <- Pairwise_background[(Pairwise_background$`Feature Orientation` == "overlapping") | (Pairwise_background$`Feature Orientation` == "downstream") & Pairwise_background$Distance <= 2000 | (Pairwise_background$`Feature Orientation` == "upstream") & Pairwise_background$Distance <= 2000,]
+colnames(Pairwise_background_GeneBody)
+Pairwise_background_GeneBody_GO_MWU_background <- Pairwise_background_GeneBody[,c(99,109)]
+dim(Pairwise_background_GeneBody_GO_MWU_background)
+
+#write.table(Pairwise_background_GeneBody_GO_MWU_background,"GO_MWU/GO_MWU_background_pairwise_GeneBody.tab",sep="\t",quote=F,row.names=F)
+
+PopSt_sig_Diff <- bedgraph(popSt.15_sig,col.name =c("pvalue", "qvalue", "meth.diff"))
+PopSt_sig_Diff$Positon <- paste(PopSt_sig_Diff$chr,PopSt_sig_Diff$start,PopSt_sig_Diff$end, sep = "_") 
+PopSt_sig_for_annot <- merge(All_probes,PopSt_sig_Diff, by = "Positon",all.y=T)
+PopSt_sig_annot <- merge(PopSt_sig_for_annot,CV_Gene_Annotations_Final, by ="ID",all.x=T)
+#write.csv(PopSt_sig_annot,"K2_PopSt_sig_annot.csv")
+#Now use nonsignificant list for Mann-Whiteney U Test
+PopSt_nonsig_Diff <- bedgraph(popSt.nonsig,col.name =c("pvalue", "qvalue", "meth.diff"))
+PopSt_nonsig_Diff$Positon <- paste(PopSt_nonsig_Diff$chr,PopSt_nonsig_Diff$start,PopSt_nonsig_Diff$end, sep = "_") 
+PopSt_nonsig_for_GOmWU <- merge(PopSt_nonsig_Diff,All_probes, by = "Positon")
+PopSt_nonsig_annot <- merge(PopSt_nonsig_for_GOmWU,CV_Gene_Annotations_Final, by ="ID",all.x=T)
+PopSt_nonsig_annot$Direction <- ifelse(PopSt_nonsig_annot$score.meth.diff >=0,1,-1)
+PopSt_nonsig_annot$signq <- PopSt_nonsig_annot$score.qvalue * PopSt_nonsig_annot$Direction
+PopSt_nonsig_GeneBody <- PopSt_nonsig_annot[(PopSt_nonsig_annot$`Feature Orientation` == "overlapping") | (PopSt_nonsig_annot$`Feature Orientation` == "downstream") & PopSt_nonsig_annot$Distance <= 2000 | (PopSt_nonsig_annot$`Feature Orientation` == "upstream") & PopSt_nonsig_annot$Distance <= 2000,]
+PopSt_nonsig_GeneBody_GO_MWU <- PopSt_nonsig_GeneBody[,c(2,34)]
+#write.csv(PopSt_nonsig_GeneBody_GO_MWU,"GO_MWU/PopSt_nonsig_GeneBody_GO_MWU.csv",quote=F,row.names = F)
+
+LC_LF_sig_Diff <- bedgraph(LC_LF.15_sig,col.name =c("pvalue", "qvalue", "meth.diff"))
+LC_LF_sig_Diff$Positon <- paste(LC_LF_sig_Diff$chr,LC_LF_sig_Diff$start,LC_LF_sig_Diff$end, sep = "_") 
+LCLF <- merge(All_probes,LC_LF_sig_Diff, by = "Positon")
+LCLF_sig_annot <- merge(LCLF,CV_Gene_Annotations_Final, by ="ID",all.x=T)
+#write.csv(LCLF_sig_annot,"LCLF_sig_annot.csv")
+LC_LF_nonsig_Diff <- bedgraph(LC_LF.nonsig,col.name =c("pvalue", "qvalue", "meth.diff"))
+LC_LF_nonsig_Diff$Positon <- paste(LC_LF_nonsig_Diff$chr,LC_LF_nonsig_Diff$start,LC_LF_nonsig_Diff$end, sep = "_") 
+LCLF_nonsig <- merge(All_probes,LC_LF_nonsig_Diff, by = "Positon")
+LCLF_nonsig_annot <- merge(LCLF_nonsig,CV_Gene_Annotations_Final, by ="ID",all.x=T)
+LCLF_nonsig_annot$Direction <- ifelse(LCLF_nonsig_annot$score.meth.diff >=0,1,-1)
+LCLF_nonsig_annot$signq <- LCLF_nonsig_annot$score.qvalue * LCLF_nonsig_annot$Direction
+LCLF_nonsig_GeneBody <- LCLF_nonsig_annot[(LCLF_nonsig_annot$`Feature Orientation` == "overlapping") | (LCLF_nonsig_annot$`Feature Orientation` == "downstream") & LCLF_nonsig_annot$Distance <= 2000 | (LCLF_nonsig_annot$`Feature Orientation` == "upstream") & LCLF_nonsig_annot$Distance <= 2000,]
+LCLF_nonsig_GeneBody_GO_MWU <- LCLF_nonsig_GeneBody[,c(2,34)]
+head(LCLF_nonsig_GeneBody_GO_MWU)
+#write.csv(LCLF_nonsig_GeneBody_GO_MWU,"GO_MWU/LCLF_nonsig_GeneBody_GO_MWU.csv",quote=F,row.names = F)
+
+
+LC_MI_sig_Diff <- bedgraph(LC_MI.15_sig,col.name =c("pvalue", "qvalue", "meth.diff"))
+LC_MI_sig_Diff$Positon <- paste(LC_MI_sig_Diff$chr,LC_MI_sig_Diff$start,LC_MI_sig_Diff$end, sep = "_") 
+LCMI <- merge(All_probes,LC_MI_sig_Diff, by = "Positon")
+LCMI_sig_annot <- merge(LCMI,CV_Gene_Annotations_Final, by ="ID",all.x=T)
+#write.csv(LCMI_sig_annot,"LCMI_sig_annot.csv")
+LC_MI_nonsig_Diff <- bedgraph(LC_MI.nonsig,col.name =c("pvalue", "qvalue", "meth.diff"))
+LC_MI_nonsig_Diff$Positon <- paste(LC_MI_nonsig_Diff$chr,LC_MI_nonsig_Diff$start,LC_MI_nonsig_Diff$end, sep = "_") 
+LCMI_nonsig <- merge(All_probes,LC_MI_nonsig_Diff, by = "Positon")
+LCMI_nonsig_annot <- merge(LCMI_nonsig,CV_Gene_Annotations_Final, by ="ID",all.x=T)
+LCMI_nonsig_annot$Direction <- ifelse(LCMI_nonsig_annot$score.meth.diff >=0,1,-1)
+LCMI_nonsig_annot$signq <- LCMI_nonsig_annot$score.qvalue * LCMI_nonsig_annot$Direction
+LCMI_nonsig_GeneBody <- LCMI_nonsig_annot[(LCMI_nonsig_annot$`Feature Orientation` == "overlapping") | (LCMI_nonsig_annot$`Feature Orientation` == "downstream") & LCMI_nonsig_annot$Distance <= 2000 | (LCMI_nonsig_annot$`Feature Orientation` == "upstream") & LCMI_nonsig_annot$Distance <= 2000,]
+LCMI_nonsig_GeneBody_GO_MWU <- LCMI_nonsig_GeneBody[,c(2,34)]
+head(LCMI_nonsig_GeneBody_GO_MWU)
+#write.csv(LCMI_nonsig_GeneBody_GO_MWU,"GO_MWU/LCMI_nonsig_GeneBody_GO_MWU.csv",quote=F,row.names = F)
+
+
+LC_SL_sig_Diff <- bedgraph(LC_SL.15_sig,col.name =c("pvalue", "qvalue", "meth.diff"))
+LC_SL_sig_Diff$Positon <- paste(LC_SL_sig_Diff$chr,LC_SL_sig_Diff$start,LC_SL_sig_Diff$end, sep = "_") 
+LCSL <- merge(All_probes,LC_SL_sig_Diff, by = "Positon")
+LCSL_sig_annot <- merge(LCSL,CV_Gene_Annotations_Final, by ="ID",all.x=T)
+#write.csv(LCSL_sig_annot,"LCSL_sig_annot.csv")
+LC_SL_nonsig_Diff <- bedgraph(LC_SL.nonsig,col.name =c("pvalue", "qvalue", "meth.diff"))
+LC_SL_nonsig_Diff$Positon <- paste(LC_SL_nonsig_Diff$chr,LC_SL_nonsig_Diff$start,LC_SL_nonsig_Diff$end, sep = "_") 
+LCSL_nonsig <- merge(All_probes,LC_SL_nonsig_Diff, by = "Positon")
+LCSL_nonsig_annot <- merge(LCSL_nonsig,CV_Gene_Annotations_Final, by ="ID",all.x=T)
+LCSL_nonsig_annot$Direction <- ifelse(LCSL_nonsig_annot$score.meth.diff >=0,1,-1)
+LCSL_nonsig_annot$signq <- LCSL_nonsig_annot$score.qvalue * LCSL_nonsig_annot$Direction
+LCSL_nonsig_GeneBody <- LCSL_nonsig_annot[(LCSL_nonsig_annot$`Feature Orientation` == "overlapping") | (LCSL_nonsig_annot$`Feature Orientation` == "downstream") & LCSL_nonsig_annot$Distance <= 2000 | (LCSL_nonsig_annot$`Feature Orientation` == "upstream") & LCSL_nonsig_annot$Distance <= 2000,]
+LCSL_nonsig_GeneBody_GO_MWU <- LCSL_nonsig_GeneBody[,c(2,34)]
+head(LCSL_nonsig_GeneBody_GO_MWU)
+#write.csv(LCSL_nonsig_GeneBody_GO_MWU,"GO_MWU/LCSL_nonsig_GeneBody_GO_MWU.csv",quote=F,row.names = F)
+
+LF_MI_sig_Diff <- bedgraph(LF_MI.15_sig,col.name =c("pvalue", "qvalue", "meth.diff"))
+LF_MI_sig_Diff$Positon <- paste(LF_MI_sig_Diff$chr,LF_MI_sig_Diff$start,LF_MI_sig_Diff$end, sep = "_") 
+LFMI <- merge(All_probes,LF_MI_sig_Diff, by = "Positon")
+LFMI_sig_annot <-merge(LFMI,CV_Gene_Annotations_Final, by ="ID",all.x=T)
+#write.csv(LFMI_sig_annot,"LFMI_sig_annot.csv")
+LF_MI_nonsig_Diff <- bedgraph(LF_MI.nonsig,col.name =c("pvalue", "qvalue", "meth.diff"))
+LF_MI_nonsig_Diff$Positon <- paste(LF_MI_nonsig_Diff$chr,LF_MI_nonsig_Diff$start,LF_MI_nonsig_Diff$end, sep = "_") 
+LFMI_nonsig <- merge(All_probes,LF_MI_nonsig_Diff, by = "Positon")
+LFMI_nonsig_annot <- merge(LFMI_nonsig,CV_Gene_Annotations_Final, by ="ID",all.x=T)
+LFMI_nonsig_annot$Direction <- ifelse(LFMI_nonsig_annot$score.meth.diff >=0,1,-1)
+LFMI_nonsig_annot$signq <- LFMI_nonsig_annot$score.qvalue * LFMI_nonsig_annot$Direction
+LFMI_nonsig_GeneBody <- LFMI_nonsig_annot[(LFMI_nonsig_annot$`Feature Orientation` == "overlapping") | (LFMI_nonsig_annot$`Feature Orientation` == "downstream") & LFMI_nonsig_annot$Distance <= 2000 | (LFMI_nonsig_annot$`Feature Orientation` == "upstream") & LFMI_nonsig_annot$Distance <= 2000,]
+LFMI_nonsig_GeneBody_GO_MWU <- LFMI_nonsig_GeneBody[,c(2,34)]
+head(LFMI_nonsig_GeneBody_GO_MWU)
+#write.csv(LFMI_nonsig_GeneBody_GO_MWU,"GO_MWU/LFMI_nonsig_GeneBody_GO_MWU.csv",quote=F,row.names = F)
+
+LF_SL_sig_Diff <- bedgraph(LF_SL.15_sig,col.name =c("pvalue", "qvalue", "meth.diff"))
+LF_SL_sig_Diff$Positon <- paste(LF_SL_sig_Diff$chr,LF_SL_sig_Diff$start,LF_SL_sig_Diff$end, sep = "_") 
+LFSL <- merge(All_probes,LF_SL_sig_Diff, by = "Positon")
+LFSL_sig_annot <- merge(LFSL,CV_Gene_Annotations_Final, by ="ID",all.x=T)
+#write.csv(LFSL_sig_annot,"LFSL_sig_annot.csv")
+LF_SL_nonsig_Diff <- bedgraph(LF_SL.nonsig,col.name =c("pvalue", "qvalue", "meth.diff"))
+LF_SL_nonsig_Diff$Positon <- paste(LF_SL_nonsig_Diff$chr,LF_SL_nonsig_Diff$start,LF_SL_nonsig_Diff$end, sep = "_") 
+LFSL_nonsig <- merge(All_probes,LF_SL_nonsig_Diff, by = "Positon")
+LFSL_nonsig_annot <- merge(LFSL_nonsig,CV_Gene_Annotations_Final, by ="ID",all.x=T)
+LFSL_nonsig_annot$Direction <- ifelse(LFSL_nonsig_annot$score.meth.diff >=0,1,-1)
+LFSL_nonsig_annot$signq <- LFSL_nonsig_annot$score.qvalue * LFSL_nonsig_annot$Direction
+LFSL_nonsig_GeneBody <- LFSL_nonsig_annot[(LFSL_nonsig_annot$`Feature Orientation` == "overlapping") | (LFSL_nonsig_annot$`Feature Orientation` == "downstream") & LFSL_nonsig_annot$Distance <= 2000 | (LFSL_nonsig_annot$`Feature Orientation` == "upstream") & LFSL_nonsig_annot$Distance <= 2000,]
+LFSL_nonsig_GeneBody_GO_MWU <- LFSL_nonsig_GeneBody[,c(2,34)]
+head(LFSL_nonsig_GeneBody_GO_MWU)
+#write.csv(LFSL_nonsig_GeneBody_GO_MWU,"GO_MWU/LFSL_nonsig_GeneBody_GO_MWU.csv",quote=F,row.names = F)
+
+SL_MI_sig_Diff <- bedgraph(SL_MI.15_sig,col.name =c("pvalue", "qvalue", "meth.diff"))
+SL_MI_sig_Diff$Positon <- paste(SL_MI_sig_Diff$chr,SL_MI_sig_Diff$start,SL_MI_sig_Diff$end, sep = "_") 
+SLMI <- merge(All_probes,SL_MI_sig_Diff, by = "Positon")
+SLMI_sig_annot <- merge(SLMI,CV_Gene_Annotations_Final, by ="ID",all.x=T)
+#write.csv(SLMI_sig_annot,"SLMI_sig_annot.csv")
+SL_MI_nonsig_Diff <- bedgraph(SL_MI.nonsig,col.name =c("pvalue", "qvalue", "meth.diff"))
+SL_MI_nonsig_Diff$Positon <- paste(SL_MI_nonsig_Diff$chr,SL_MI_nonsig_Diff$start,SL_MI_nonsig_Diff$end, sep = "_") 
+SLMI_nonsig <- merge(All_probes,SL_MI_nonsig_Diff, by = "Positon")
+SLMI_nonsig_annot <- merge(SLMI_nonsig,CV_Gene_Annotations_Final, by ="ID",all.x=T)
+SLMI_nonsig_annot$Direction <- ifelse(SLMI_nonsig_annot$score.meth.diff >=0,1,-1)
+SLMI_nonsig_annot$signq <- SLMI_nonsig_annot$score.qvalue * SLMI_nonsig_annot$Direction
+SLMI_nonsig_GeneBody <- SLMI_nonsig_annot[(SLMI_nonsig_annot$`Feature Orientation` == "overlapping") | (SLMI_nonsig_annot$`Feature Orientation` == "downstream") & SLMI_nonsig_annot$Distance <= 2000 | (SLMI_nonsig_annot$`Feature Orientation` == "upstream") & SLMI_nonsig_annot$Distance <= 2000,]
+SLMI_nonsig_GeneBody_GO_MWU <- SLMI_nonsig_GeneBody[,c(2,34)]
+head(SLMI_nonsig_GeneBody_GO_MWU)
+#write.csv(SLMI_nonsig_GeneBody_GO_MWU,"GO_MWU/SLMI_nonsig_GeneBody_GO_MWU.csv",quote=F,row.names = F)
+
+#Let's remove extra columns
+reduced_SLMI <- SLMI_sig_annot[c(1,2,4,5,6,8,12,13,19,20,21,29,32,33)]
+reduced_LCSL <- LCSL_sig_annot[c(1,2,4,5,6,8,12,13,19,20,21,29,32,33)]
+reduced_LFSL <- LFSL_sig_annot[c(1,2,4,5,6,8,12,13,19,20,21,29,32,33)]
+reduced_LFMI <- LFMI_sig_annot[c(1,2,4,5,6,8,12,13,19,20,21,29,32,33)]
+reduced_LCMI <- LCMI_sig_annot[c(1,2,4,5,6,8,12,13,19,20,21,29,32,33)]
+reduced_LCLF <- LCLF_sig_annot[c(1,2,4,5,6,8,12,13,19,20,21,29,32,33)]
+
+colnames(reduced_SLMI) <- c("SLMI.ID","Positon","SLMI.Chromosome","SLMI.Start","SLMI.End","SLMI.protein_id","SLMI.Orientation","SLMI.Distance","SLMI.score.pvalue","SLMI.score.qvalue", "SLMI.score.meth.diff","SLMI.gene.product","SLMI.Enzyme.Code","SLMI.Enzyme.Name")
+colnames(reduced_LCSL) <- c("LCSL.ID","Positon","LCSL.Chromosome","LCSL.Start","LCSL.End","LCSL.protein_id","LCSL.Orientation","LCSL.Distance","LCSL.score.qvalue","LCSL.score.pvalue", "LCSL.score.meth.diff","LCSL.gene.product","LCSL.Enzyme.Code","LCSL.Enzyme.Name")
+colnames(reduced_LFSL) <- c("LFSL.ID","Positon","LFSL.Chromosome","LFSL.Start","LFSL.End","LFSL.protein_id","LFSL.Orientation","LFSL.Distance","LFSL.score.qvalue","LFSL.score.pvalue", "LFSL.score.meth.diff","LFSL.gene.product","LFSL.Enzyme.Code","LFSL.Enzyme.Name")
+colnames(reduced_LFMI) <- c("LFMI.ID","Positon","LFMI.Chromosome","LFMI.Start","LFMI.End","LFMI.protein_id","LFMI.Orientation","LFMI.Distance","LFMI.score.qvalue","LFMI.score.pvalue", "LFMI.score.meth.diff","LFMI.gene.product","LFMI.Enzyme.Code","LFMI.Enzyme.Name")
+colnames(reduced_LCMI) <- c("LCMI.ID","Positon","LCMI.Chromosome","LCMI.Start","LCMI.End","LCMI.protein_id","LCMI.Orientation","LCMI.Distance","LCMI.score.qvalue","LCMI.score.pvalue", "LCMI.score.meth.diff","LCMI.gene.product","LCMI.Enzyme.Code","LCMI.Enzyme.Name")
+colnames(reduced_LCLF) <- c("LCLF.ID","Positon","LCLF.Chromosome","LCLF.Start","LCLF.End","LCLF.protein_id","LCLF.Orientation","LCLF.Distance","LCLF.score.qvalue","LCLF.score.pvalue", "LCLF.score.meth.diff","LCLF.gene.product","LCLF.Enzyme.Code","LCLF.Enzyme.Name")
+
+reduced_SLMI$Comparison <- c("SLMI")
+reduced_LCSL$Comparison <- c("LCSL")
+reduced_LFSL$Comparison <- c("LFSL")
+reduced_LFMI$Comparison <- c("LFMI")
+reduced_LCMI$Comparison <- c("LCMI")
+reduced_LCLF$Comparison <- c("LCLF")
+
+All <- merge(reduced_SLMI,reduced_LCSL,by="Positon",all=T)
+All <- merge(All,reduced_LFSL,by="Positon",all=T)
+All <- merge(All,reduced_LFMI,by="Positon",all=T)
+All <- merge(All,reduced_LCMI,by="Positon",all=T)
+All <- merge(All,reduced_LCLF,by="Positon",all=T)
+
+dim(All)
+#312 73
+#once again we see that 312 DMRs were found across all comparisons
+#write.csv(All,"ALL_DMRs.csv",quote=F)
+
+all_v_LC <- merge(reduced_LCLF,reduced_LCMI, by ="Positon", all=TRUE)
+all_v_LC <- merge(all_v_LC,reduced_LCSL, by ="Positon", all=TRUE)
+all_v_LC_complete <- all_v_LC[complete.cases(all_v_LC),]
+dim(all_v_LC)
+#174 DMRs vs LC
+#6 shared in comparison to all others
+#write.csv(all_v_LC, "All_shared_v_LC_Sig_Annotations.csv")
+
+all_v_MI <- merge(reduced_LFMI,reduced_LCMI, by ="Positon", all=TRUE)
+all_v_MI <- merge(all_v_MI,reduced_SLMI, by ="Positon", all=TRUE)
+all_v_MI_complete <- all_v_MI[complete.cases(all_v_MI),]
+dim(all_v_MI)
+#253 DMRs vs Marsh Island
+dim(all_v_MI_complete)
+#1 shared in comparison to all others
+#write.csv(all_v_MI, "All_shared_v_MI_Sig_Annotations.csv")
+
+all_v_LF <- merge(reduced_LCLF,reduced_LFMI, by ="Positon", all=TRUE)
+all_v_LF <- merge(all_v_LF,reduced_LFSL, by ="Positon", all=TRUE)
+all_v_LF_complete <- all_v_LF[complete.cases(all_v_LF),]
+dim(all_v_LF)
+#201 DMRs vs LF
+dim(all_v_LF_complete)
+#2 shared in comparison to all others
+#write.csv(all_v_LF, "All_shared_v_LF_Sig_Annotations.csv")
+
+all_v_SL <- merge(reduced_LCSL,reduced_LFSL, by ="Positon", all=TRUE)
+all_v_SL <- merge(all_v_SL,reduced_SLMI, by ="Positon", all=TRUE)
+all_v_SL_complete <- all_v_SL[complete.cases(all_v_SL),]
+dim(all_v_SL)
+#111 DMRs vs SL
+dim(all_v_SL_complete)
+#6 shared in comparison to all others
+#write.csv(all_v_SL, "All_shared_v_SL_Sig_Annotations.csv")
+
+# This calclates populaton specific methylation distributions
+file.list.LC = list("A1.bismark.merged.cov","A2.bismark.merged.cov","A3.bismark.merged.cov","A4.bismark.merged.cov","A5.bismark.merged.cov","A6.bismark.merged.cov","A7.bismark.merged.cov","A9.bismark.merged.cov","A10.bismark.merged.cov","G9.bismark.merged.cov","H1.bismark.merged.cov","B1.bismark.merged.cov","B2.bismark.merged.cov","B3.bismark.merged.cov","B4.bismark.merged.cov","B5.bismark.merged.cov","B6.bismark.merged.cov","B7.bismark.merged.cov","B8.bismark.merged.cov")
+
+LC_myobj <- methRead(file.list.LC, sample.id = list("LC1", "LC10", "LC11", "LC12", "LC13", "LC14", "LC15", "LC16", "LC17", "LC18", "LC19", "LC2", "LC3", "LC4", "LC5", "LC6", "LC7",  "LC9"), 
+                     assembly = "cv3.0", pipeline = "bismarkCoverage",
+                     treatment = c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1), 
+                     context = "CpG")
+
+
+file.list.LF = list("D5.bismark.merged.cov","D6.bismark.merged.cov","D7.bismark.merged.cov","D8.bismark.merged.cov","D9.bismark.merged.cov","D10.bismark.merged.cov","H8.bismark.merged.cov","H4.bismark.merged.cov","E1.bismark.merged.cov","E2.bismark.merged.cov","E3.bismark.merged.cov","E4.bismark.merged.cov","E5.bismark.merged.cov","E6.bismark.merged.cov","E7.bismark.merged.cov","E8.bismark.merged.cov","E9.bismark.merged.cov","E10.bismark.merged.cov","H9.bismark.merged.cov","H5.bismark.merged.cov")
+
+LF_myobj <- methRead(file.list.LF, sample.id = list("LF1", "LF10", "LF11", "LF12", "LF13", "LF14", "LF15", "LF16", "LF17", "LF18", "LF19", "LF2", "LF20", "LF3", "LF4", "LF5", "LF6", "LF7", "LF8", "LF9"), 
+                     assembly = "cv3.0", pipeline = "bismarkCoverage",
+                     treatment = c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1), 
+                     context = "CpG")
+
+file.list.SL = list("F1.bismark.merged.cov","F2.bismark.merged.cov","F3.bismark.merged.cov","F4.bismark.merged.cov","F6.bismark.merged.cov","F7.bismark.merged.cov","F8.bismark.merged.cov","F10.bismark.merged.cov","H10.bismark.merged.cov","H6.bismark.merged.cov","G1.bismark.merged.cov","G2.bismark.merged.cov","G3.bismark.merged.cov","G4.bismark.merged.cov","G5.bismark.merged.cov","G6.bismark.merged.cov","G7.bismark.merged.cov","G8.bismark.merged.cov",)
+
+SL_myobj <- methRead(file.list.SL, sample.id = list("SL1", "SL10",  "SL12", "SL13", "SL14", "SL15", "SL16", "SL17", "SL18", "SL2", "SL3", "SL4", "SL5", "SL6",  "SL8", "SL9"), 
+                     assembly = "cv3.0", pipeline = "bismarkCoverage",
+                     treatment = c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1), 
+                     context = "CpG")
+
+
+file.list.MI = list("B9.bismark.merged.cov","B10.bismark.merged.cov","G10.bismark.merged.cov","H2.bismark.merged.cov","C1.bismark.merged.cov","C2.bismark.merged.cov","C3.bismark.merged.cov","C4.bismark.merged.cov","C5.bismark.merged.cov","C6.bismark.merged.cov","C7.bismark.merged.cov","C8.bismark.merged.cov","C9.bismark.merged.cov","C10.bismark.merged.cov","H7.bismark.merged.cov","H3.bismark.merged.cov","D1.bismark.merged.cov","D2.bismark.merged.cov","D3.bismark.merged.cov","D4.bismark.merged.cov")
+
+MI_myobj <- methRead(file.list.MI, sample.id = list("MI1", "MI10", "MI11", "MI12", "MI13", "MI14", "MI15", "MI16",	"MI17", "MI18", "MI19", "MI2", "MI20",	"MI3", "MI4", "MI5", "MI6", "MI7", "MI8", "MI9"), 
+                     assembly = "cv3.0", pipeline = "bismarkCoverage",
+                     treatment = c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1), 
+                     context = "CpG")
+
+myobj <- LC_myobj 
+filtered.myobj <- filterByCoverage(myobj, lo.count = 10,
+                                   lo.perc = NULL, hi.count = NULL, hi.perc = 99.9)
+meth.min <- unite(filtered.myobj,min.per.group = 8L)
+
+LC_Populations <- as(meth.min, "GRanges")
+LC_Populations_chr <-assignChromosomeRegion(LC_Populations, nucleotideLevel=FALSE, 
+                                            precedence=c("Promoters", "immediateDownstream", 
+                                                         "fiveUTRs", "threeUTRs", 
+                                                         "Exons", "Introns"), 
+                                            TxDb=Cvirginica_txDB)
+
+Z <- barplot(LC_Populations_chr$percentage, las=3,ylim=c(0,100),  main="LCs Methylation distribution")
+text(x = Z, y = LC_Populations_chr$percentage, label = LC_Populations_chr$percentage, pos = 3, cex = 0.8, col = "red")
+
+LC_Populations_pie <- LC_Populations_chr$percentage
+
+Names <- names(LC_Populations_pie)
+pct <- round(LC_Populations_pie, digits = 3)
+lbls <- paste(pct,"%",sep=" ") # ad % to labels 
+
+par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
+pie(LC_Populations_pie,
+    labels=lbls,
+    clockwise=TRUE,
+    col=brewer.pal(7,"Set3"),
+    border="white",
+    radius=1,
+    cex=0.8,
+    main="LC Methylation distribution")
+legend("bottomright",inset=c(-1.1,-.05), legend=Names,bty="n",ncol=1,fill=brewer.pal(7,"Set3"))
+
+
+myobj <- LF_myobj 
+filtered.myobj <- filterByCoverage(myobj, lo.count = 10,
+                                   lo.perc = NULL, hi.count = NULL, hi.perc = 99.9)
+meth.min <- unite(filtered.myobj,min.per.group = 8L)
+
+LF_Populations <- as(meth.min, "GRanges")
+LF_Populations_chr <-assignChromosomeRegion(LF_Populations, nucleotideLevel=FALSE, 
+                                            precedence=c("Promoters", "immediateDownstream", 
+                                                         "fiveUTRs", "threeUTRs", 
+                                                         "Exons", "Introns"), 
+                                            TxDb=Cvirginica_txDB)
+
+Z <- barplot(LF_Populations_chr$percentage, las=3,ylim=c(0,100),  main="LF Methylation distribution")
+text(x = Z, y = LF_Populations_chr$percentage, label = LF_Populations_chr$percentage, pos = 3, cex = 0.8, col = "red")
+
+LF_Populations_pie <- LF_Populations_chr$percentage
+
+Names <- names(LF_Populations_pie)
+pct <- round(LF_Populations_pie, digits = 3)
+lbls <- paste(pct,"%",sep=" ") # ad % to labels 
+
+par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
+pie(LF_Populations_pie,
+    labels=lbls,
+    clockwise=TRUE,
+    col=brewer.pal(7,"Set3"),
+    border="white",
+    radius=1,
+    cex=0.8,
+    main="LF Methylation distribution")
+legend("bottomright",inset=c(-1.1,-.05), legend=Names,bty="n",ncol=1,fill=brewer.pal(7,"Set3"))
+
+
+myobj <- SL_myobj 
+filtered.myobj <- filterByCoverage(myobj, lo.count = 10,
+                                   lo.perc = NULL, hi.count = NULL, hi.perc = 99.9)
+meth.min <- unite(filtered.myobj,min.per.group = 8L)
+
+SL_Populations <- as(meth.min, "GRanges")
+SL_Populations_chr <-assignChromosomeRegion(SL_Populations, nucleotideLevel=FALSE, 
+                                            precedence=c("Promoters", "immediateDownstream", 
+                                                         "fiveUTRs", "threeUTRs", 
+                                                         "Exons", "Introns"), 
+                                            TxDb=Cvirginica_txDB)
+
+Z <- barplot(SL_Populations_chr$percentage, las=3,ylim=c(0,100),  main="SL Methylation distribution")
+text(x = Z, y = SL_Populations_chr$percentage, label = SL_Populations_chr$percentage, pos = 3, cex = 0.8, col = "red")
+
+SL_Populations_pie <- SL_Populations_chr$percentage
+
+Names <- names(SL_Populations_pie)
+pct <- round(SL_Populations_pie, digits = 3)
+lbls <- paste(pct,"%",sep=" ") # ad % to labels 
+
+par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
+pie(SL_Populations_pie,
+    labels=lbls,
+    clockwise=TRUE,
+    col=brewer.pal(7,"Set3"),
+    border="white",
+    radius=1,
+    cex=0.8,
+    main="SL Methylation distribution")
+legend("bottomright",inset=c(-1.1,-.05), legend=Names,bty="n",ncol=1,fill=brewer.pal(7,"Set3"))
+
+
+myobj <- MI_myobj 
+filtered.myobj <- filterByCoverage(myobj, lo.count = 10,
+                                   lo.perc = NULL, hi.count = NULL, hi.perc = 99.9)
+meth.min <- unite(filtered.myobj,min.per.group = 8L)
+MI_Populations <- as(meth.min, "GRanges")
+MI_Populations_chr <-assignChromosomeRegion(MI_Populations, nucleotideLevel=FALSE, 
+                                            precedence=c("Promoters", "immediateDownstream", 
+                                                         "fiveUTRs", "threeUTRs", 
+                                                         "Exons", "Introns"), 
+                                            TxDb=Cvirginica_txDB)
+
+Z <- barplot(MI_Populations_chr$percentage, las=3,ylim=c(0,100),  main="MI Methylation distribution")
+text(x = Z, y = MI_Populations_chr$percentage, label = MI_Populations_chr$percentage, pos = 3, cex = 0.8, col = "red")
+
+MI_Populations_pie <- MI_Populations_chr$percentage
+
+Names <- names(MI_Populations_pie)
+pct <- round(MI_Populations_pie, digits = 3)
+lbls <- paste(pct,"%",sep=" ") # ad % to labels 
+
+par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
+pie(MI_Populations_pie,
+    labels=lbls,
+    clockwise=TRUE,
+    col=brewer.pal(7,"Set3"),
+    border="white",
+    radius=1,
+    cex=0.8,
+    main="MI Methylation distribution")
+legend("bottomright",inset=c(-1.1,-.05), legend=Names,bty="n",ncol=1,fill=brewer.pal(7,"Set3"))
+
+
+#Merging Fst with Gene Product Annotation with probe and all Diff_methylation_values
+
+
+####RADseq
+
+setwd("~/Dropbox/EpiGBS/New_stacks/CONSTRUCT/")
+
+LF.LC <- read.delim("populations.fst_LC-LF.tsv")
+LF.MI <- read.delim("populations.fst_LF-MI.tsv")
+MI.LC <- read.delim("populations.fst_LC-MI.tsv")
+SL.LC <- read.delim("populations.fst_LC-SL.tsv")
+SL.LF <- read.delim("populations.fst_LF-SL.tsv")
+SL.MI <- read.delim("populations.fst_MI-SL.tsv")
+
+LF.LC$Pos <- paste(LF.LC$Chr,LF.LC$BP,sep="_")
+LF.MI$Pos <- paste(LF.MI$Chr,LF.MI$BP,sep="_")
+MI.LC$Pos <- paste(MI.LC$Chr,MI.LC$BP,sep="_")
+SL.LC$Pos <- paste(SL.LC$Chr,SL.LC$BP,sep="_")
+SL.LF$Pos <- paste(SL.LF$Chr,SL.LF$BP,sep="_")
+SL.MI$Pos <- paste(SL.MI$Chr,SL.MI$BP,sep="_")
+
+All_Fst_seqmonk <- read.delim("All_Fst_Seqmonk_annotations.txt")
+All_Fst_seqmonk$Pos <- paste(All_Fst_seqmonk$Chromosome,All_Fst_seqmonk$Start,sep="_")
+
+LF.LC.merge <- merge(LF.LC,All_Fst_seqmonk,by="Pos")
+LF.MI.merge <- merge(LF.MI,All_Fst_seqmonk,by="Pos")
+MI.LC.merge <- merge(MI.LC,All_Fst_seqmonk,by="Pos")
+SL.LC.merge <- merge(SL.LC,All_Fst_seqmonk,by="Pos")
+SL.LF.merge <- merge(SL.LF,All_Fst_seqmonk,by="Pos")
+SL.MI.merge <- merge(SL.MI,All_Fst_seqmonk,by="Pos")
+
+dim(LF.LC.merge)
+#499
+dim(LF.MI.merge)
+#501
+dim(MI.LC.merge)
+#498
+dim(SL.LC.merge)
+#495
+dim(SL.LF.merge)
+#500
+dim(SL.MI.merge)
+#500
+
+#Add product names to annotations
+colnames(CV_Gene_Annotations_Final)[1] <- c("ID")
+LF.LC.annot <- merge(LF.LC.merge,CV_Gene_Annotations_Final, by = "ID")
+LF.MI.annot <- merge(LF.MI.merge,CV_Gene_Annotations_Final, by = "ID")
+MI.LC.annot <- merge(MI.LC.merge,CV_Gene_Annotations_Final, by = "ID")
+SL.LC.annot <- merge(SL.LC.merge,CV_Gene_Annotations_Final, by = "ID")
+SL.LF.annot <- merge(SL.LF.merge,CV_Gene_Annotations_Final, by = "ID")
+SL.MI.annot <- merge(SL.MI.merge,CV_Gene_Annotations_Final, by = "ID")
+
+colnames(SL.MI.annot)
+LF.LC_out <- LF.LC.annot[,c(1,2,3,4,5,6,7,9,10,11,12,13,14,15,16,17,38)]
+LF.MI.out <- LF.MI.annot[,c(1,2,3,4,5,6,7,9,10,11,12,13,14,15,16,17,38)]
+MI.LC.out <- MI.LC.annot[,c(1,2,3,4,5,6,7,9,10,11,12,13,14,15,16,17,38)]
+SL.LC.out <- SL.LC.annot[,c(1,2,3,4,5,6,7,9,10,11,12,13,14,15,16,17,38)]
+SL.LF.out <- SL.LF.annot[,c(1,2,3,4,5,6,7,9,10,11,12,13,14,15,16,17,38)]
+SL.MI.out <- SL.MI.annot[,c(1,2,3,4,5,6,7,9,10,11,12,13,14,15,16,17,38)]
+
+SLMI_nonsig_reduced <- SLMI_nonsig[,c(8,21)]
+LFSL_nonsig_reduced <- LFSL_nonsig[,c(8,21)]
+LFMI_nonsig_reduced <- LFMI_nonsig[,c(8,21)]
+LCSL_nonsig_reduced <- LCSL_nonsig[,c(8,21)]
+LCMI_nonsig_reduced <- LCMI_nonsig[,c(8,21)]
+LCLF_nonsig_reduced <- LCLF_nonsig[,c(8,21)]
+
+SLMI_meth_and_Fst <- merge(SLMI_nonsig_reduced,SL.MI.out,by="ID")
+LFSL_meth_and_Fst <- merge(LFSL_nonsig_reduced,SL.LF.out,by="ID")
+LFMI_meth_and_Fst <- merge(LFMI_nonsig_reduced,LF.MI.out,by="ID")
+LCSL_meth_and_Fst <- merge(LCSL_nonsig_reduced,SL.LC.out,by="ID")
+LCMI_meth_and_Fst <- merge(LCMI_nonsig_reduced,MI.LC.out,by="ID")
+LCLF_meth_and_Fst <- merge(LCLF_nonsig_reduced,LF.LC_out,by="ID")
+
+head(SLMI_meth_and_Fst)
+dim(LFSL_meth_and_Fst)
+dim(LFMI_meth_and_Fst)
+dim(LCSL_meth_and_Fst)
+dim(LCMI_meth_and_Fst)
+dim(LCLF_meth_and_Fst)
+
+SLMI_meth_and_Fst_reduce <- SLMI_meth_and_Fst[,c(1,2,10)]
+LFSL_meth_and_Fst_reduce <- LFSL_meth_and_Fst[,c(1,2,10)]
+LFMI_meth_and_Fst_reduce <- LFMI_meth_and_Fst[,c(1,2,10)]
+LCSL_meth_and_Fst_reduce <- LCSL_meth_and_Fst[,c(1,2,10)]
+LCMI_meth_and_Fst_reduce <- LCMI_meth_and_Fst[,c(1,2,10)]
+LCLF_meth_and_Fst_reduce <- LCLF_meth_and_Fst[,c(1,2,10)]
+
+All <- rbind(SLMI_meth_and_Fst_reduce,
+             LFSL_meth_and_Fst_reduce,
+             LFMI_meth_and_Fst_reduce,
+             LCSL_meth_and_Fst_reduce,
+             LCMI_meth_and_Fst_reduce,
+             LCLF_meth_and_Fst_reduce)
+
+head(All)
+range(All$score.meth.diff)
+plot(abs(All$score.meth.diff)~All$AMOVA.Fst)
+plot(SLMI_meth_and_Fst$SLMI.score.meth.diff,SLMI_meth_and_Fst$AMOVA.Fst)
+plot(LFSL_meth_and_Fst$LFSL.score.meth.diff,LFSL_meth_and_Fst$AMOVA.Fst)
+plot(LFMI_meth_and_Fst$LFMI.score.meth.diff,LFMI_meth_and_Fst$AMOVA.Fst)
+plot(LCSL_meth_and_Fst$LCSL.score.meth.diff,LCSL_meth_and_Fst$AMOVA.Fst)
+plot(LCMI_meth_and_Fst$LCMI.score.meth.diff,LCMI_meth_and_Fst$AMOVA.Fst)
+plot(LCLF_meth_and_Fst$LCLF.score.meth.diff,LCLF_meth_and_Fst$AMOVA.Fst)
+
+# GO_MWU uses continuous measure of significance (such as fold-change or -log(p-value) ) to identify GO categories that are significantly enriches with either up- or down-regulated genes. The advantage - no need to impose arbitrary significance cutoff.
+
+# If the measure is binary (0 or 1) the script will perform a typical "GO enrichment" analysis based Fisher's exact test: it will show GO categories over-represented among the genes that have 1 as their measure. 
+
+# On the plot, different fonts are used to indicate significance and color indicates enrichment with either up (red) or down (blue) regulated genes. No colors are shown for binary measure analysis.
+
+# The tree on the plot is hierarchical clustering of GO categories based on shared genes. Categories with no branch length between them are subsets of each other.
+
+# The fraction next to GO category name indicates the fracton of "good" genes in it; "good" genes being the ones exceeding the arbitrary absValue cutoff (option in gomwuPlot). For Fisher's based test, specify absValue=0.5. This value does not affect statistics and is used for plotting only.
+
+# Stretch the plot manually to match tree to text
+
+# Mikhail V. Matz, UT Austin, February 2015; matz@utexas.edu
+
+################################################################
+# First, press command-D on mac or ctrl-shift-H in Rstudio and navigate to the directory containing scripts and input files. Then edit, mark and execute the following bits of code, one after another.
+getwd()
+setwd("/Users/Kevin_Work_Mac/Dropbox/EpiGBS/METHYLKIT_FINAL_OUT/GO_MWU/")
+
+#PopSt_nonsig_GeneBody_GO_MWU.csv
+#MF 1
+#BP 0
+#CC 0
+#LCLF_nonsig_GeneBody_GO_MWU.csv
+#MF 0
+#BP 0
+#CC 0
+#LCMI_nonsig_GeneBody_GO_MWU.csv
+#MF 0
+#BP 0
+#CC 0
+#LCSL_nonsig_GeneBody_GO_MWU.csv
+#MF 0
+#BP 0
+#CC 0
+#LFMI_nonsig_GeneBody_GO_MWU.csv
+#MF 0
+#BP 0
+#CC 1
+#LFSL_nonsig_GeneBody_GO_MWU.csv
+#MF 0
+#BP 0
+#CC 0
+#SLMI_nonsig_GeneBody_GO_MWU.csv
+#MF 0
+#BP 0
+#CC 1
+
+
+
+input="SLMI_nonsig_GeneBody_GO_MWU.csv" # two columns of comma-separated values: gene id, continuous measure of significance. To perform standard GO enrichment analysis based on Fisher's exact test, use binary measure (0 or 1, i.e., either sgnificant or not).
+goAnnotations="GO_MWU_background_pairwise_GeneBody.tab" # two-column, tab-delimited, one line per gene, multiple GO terms separated by semicolon. If you have multiple lines per gene, use nrify_GOtable.pl prior to running this script.
+goDatabase="go.obo" # download from http://www.geneontology.org/GO.downloads.ontology.shtml
+goDivision="CC" # either MF, or BP, or CC
+source("gomwu.functions.R")
+
+
+# Calculating stats. It might take ~3 min for MF and BP. Do not rerun it if you just want to replot the data with different cutoffs, go straight to gomwuPlot. If you change any of the numeric values below, delete the files that were generated in previos runs first.
+gomwuStats(input, goDatabase, goAnnotations, goDivision,
+           perlPath="perl", # replace with full path to perl executable if it is not in your system's PATH already
+           largest=0.1,  # a GO category will not be considered if it contains more than this fraction of the total number of genes
+           smallest=3,   # a GO category should contain at least this many genes to be considered
+           clusterCutHeight=0.25, # threshold for merging similar (gene-sharing) terms. See README for details.
+           #	Alternative="g" # by default the MWU test is two-tailed; specify "g" or "l" of you want to test for "greater" or "less" instead. 
+           #	Module=TRUE,Alternative="g" # un-remark this if you are analyzing a SIGNED WGCNA moduSle (values: 0 for not in module genes, kME for in-module genes). In the call to gomwuPlot below, specify absValue=0.001 (count number of "good genes" that fall into the module)
+           #	Module=TRUE # un-remark this if you are analyzing an UNSIGNED WGCNA module 
+)
+
+
+##COMPARISONS RESULTS
+
+#LCSL_nonsig_all_GO_MWU.csv
+LCSL_GO_out_1  <- read.delim("~/Dropbox/EpiGBS/METHYLKIT_FINAL_OUT/GO_MWU/MF_LCSL_nonsig_all_GO_MWU.csv")
+LCSL_GO_out_2 <- read.csv("~/Dropbox/EpiGBS/METHYLKIT_FINAL_OUT/GO_MWU/MWU_MF_LCSL_nonsig_all_GO_MWU.csv", sep="")
+LCSL_GO_out <- merge(LCSL_GO_out_1,LCSL_GO_out_2,by="name")
+keep <- LCSL_GO_out$pval <= 0.10
+LCSL_GO_out <- LCSL_GO_out[keep,]
+colnames(LCSL_GO_out)[4] <- c("ID")
+LCSL_GO_out_annot <- merge(LCSL_GO_out,CV_Gene_Annotations_Final,by="ID")
+View(LCSL_GO_out_annot)
+
+
+getwd()
+head(MWU_MF_LCMI_nonsig_GeneBody_GO_MWU)
+
+tiff("test.tiff", units="in", width=5, height=5, res=300)
+plot(test$pval~Test$p.adj)
+dev.off()
+
+
+
+
+
+MF_pop <- read.delim("~/Dropbox/EpiGBS/METHYLKIT_FINAL_OUT/GO_MWU/MF_PopSt_nonsig_GeneBody_GO_MWU.csv")
+
+CC_LFMI <- read.delim("~/Dropbox/EpiGBS/METHYLKIT_FINAL_OUT/GO_MWU/CC_LFMI_nonsig_GeneBody_GO_MWU.csv")
+
+CC_SLMI <- read.delim("~/Dropbox/EpiGBS/METHYLKIT_FINAL_OUT/GO_MWU/CC_SLMI_nonsig_GeneBody_GO_MWU.csv")
+
+head(MF_pop)
+#This file has the results from the GOMWU test
+MF_pop_MWU_results <- read.csv("~/Dropbox/EpiGBS/METHYLKIT_FINAL_OUT/GO_MWU/MWU_MF_PopSt_nonsig_GeneBody_GO_MWU.csv", sep="")
+head(MF_pop_MWU_results)
+#Let's see what terms are significant
+MF_pop_MWU_results_significant <- MF_pop_MWU_results$p.adj <= 0.05
+table(MF_pop_MWU_results_significant)
+#CC_pink_MFW_results_significant
+#FALSE  TRUE
+#133     2
+
+#OK 2 ontologies were significant let's reduce the file to only show those
+MF_pop_MWU_results_significant <- MF_pop_MWU_results[MF_pop_MWU_results_significant,]
+head(MF_pop_MWU_results_significant)
+
+#delta.rank         pval level nseqs       term                  name      p.adj
+#40        274 9.765862e-05     4     5 GO:0005882 intermediate filament 0.01318391
+#42         98 6.721079e-04     2    30 GO:0005886       plasma membrane 0.04536728
+
+#Now let's look at what sequences were in  intermediate filament
+head(MF_pop)
+CC_LFMI_ex <- CC_LFMI$name == c("extracellular region")
+CC_SLMI_ex <- CC_SLMI$name == c("extracellular region")
+
+#This will show how many sequences we have...on line 1004 we can see that we should expect 5 sequences
+table(CC_LFMI_ex)
+table(CC_SLMI_ex)
+#CC_pink_int_fil
+#FALSE  TRUE
+#3927     5
+
+
+CC_LFMI_ex <- CC_LFMI[CC_LFMI_ex,]
+CC_SLMI_ex <- CC_SLMI[CC_SLMI_ex,] 
+
+colnames(CC_LFMI_ex)[4] <- c("Positon")
+colnames(CC_SLMI_ex)[4] <- c("Positon")
+
+CC_LFMI_ex2 <- merge(CC_LFMI_ex,All_probes_annot,by="Positon")
+CC_SLMI_ex2 <- merge(CC_SLMI_ex,All_probes_annot,by="Positon")
+View(CC_LFMI_ex2)
+View(CC_SLMI_ex2)
+
+#Now subset
+MF_pop_trans <- MF_pop[MF_pop_trans,]
+dim(MF_pop_trans)
+#[1] 5 5
+colnames(MF_pop_trans)[4] <- c("Positon")
+head(All_probes_annot)
+#Let's see what those genes are
+#First read in annotations
+
+MF_pop_trans2 <- merge(MF_pop_trans,All_probes_annot,by="Positon")
+View(MF_pop_trans2)
+
+head(CV_Gene_Annotations_Final)
+#The CV_Gene_Annotations_Final has the column with gene names labeled as "CV_gene"
+#The CC_pink_int_fil has the column with gene names labled "seq"
+#Let's change the CC_pink_int_fil to CV_gene for merging
+colnames(CC_pink_int_fil)
+#[1] "name"  "term"  "lev"   "seq"   "value"
+colnames(CC_pink_int_fil)[4] <- c("CV_gene")
+colnames(CC_pink_int_fil)
+#[1] "name"    "term"    "lev"     "CV_gene" "value"  
+
+#Now merge with annotations by that column
+CC_pink_int_fil_annotate <- merge(CC_pink_int_fil,CV_Gene_Annotations_Final,by="CV_gene")
+head(CC_pink_int_fil_annotate)
+
