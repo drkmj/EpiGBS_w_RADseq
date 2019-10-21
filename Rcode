@@ -1632,17 +1632,4 @@ head(All_probes_annot)
 MF_pop_trans2 <- merge(MF_pop_trans,All_probes_annot,by="Positon")
 View(MF_pop_trans2)
 
-head(CV_Gene_Annotations_Final)
-#The CV_Gene_Annotations_Final has the column with gene names labeled as "CV_gene"
-#The CC_pink_int_fil has the column with gene names labled "seq"
-#Let's change the CC_pink_int_fil to CV_gene for merging
-colnames(CC_pink_int_fil)
-#[1] "name"  "term"  "lev"   "seq"   "value"
-colnames(CC_pink_int_fil)[4] <- c("CV_gene")
-colnames(CC_pink_int_fil)
-#[1] "name"    "term"    "lev"     "CV_gene" "value"  
-
-#Now merge with annotations by that column
-CC_pink_int_fil_annotate <- merge(CC_pink_int_fil,CV_Gene_Annotations_Final,by="CV_gene")
-head(CC_pink_int_fil_annotate)
 
