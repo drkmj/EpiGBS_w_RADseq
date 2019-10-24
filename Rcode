@@ -192,9 +192,8 @@ dim(LF_MI.diffMeth_Tiles)
 dim(SL_MI.diffMeth_Tiles)
 dim(LF_SL.diffMeth_Tiles)
 
-
-PCAout <- PCASamples(All_s.pca,screeplot=FALSE, adj.lim=c(0.04,0.1),
-           scale=T,center=F,comp=c(1,2),transpose=T,sd.filter=T,
+PCAout <- PCASamples(All.Tiles,screeplot=FALSE, adj.lim=c(0.04,0.1),
+           scale=T,center=T,comp=c(1,2),transpose=T,sd.filter=T,
            sd.threshold=.57,filterByQuantile=T,obj.return=T)
 
 PCA_sdev <- PCAout$sdev
@@ -207,63 +206,28 @@ sum(PCA_sig) # Will equal 1
 samples_described <- read.csv("~/Dropbox/EpiGBS/samples_described.csv")
 
 Site <- as.factor(samples_described$Site)
-sal <- as.factor(samples_described$X10day_salinity)
 
 colors <- rep(c("blue3","orange","forestgreen","orchid4"))
 points <- c(21,22,23,24)
 par(mar=c(5,6,4,5)+0.1, xpd=TRUE)
 
-plot(PCA_coord[,1] , PCA_coord[,2],type = "p",pch=points[Site],col=c("darkgrey"), bg=colors[Site],xlab= "PC1 (34.8%)", ylab ="PC2 (23.4%)", cex=2,cex.axis=2,cex.lab = 2)
+plot(PCA_coord[,1] , PCA_coord[,2],type = "p",pch=points[Site],col=c("darkgrey"), bg=colors[Site],xlab= "PC1 (80.4%)", ylab ="PC2 (19.6%)", cex=2,cex.axis=2,cex.lab = 2,xlim=c(-2,5),ylim=c(-1.5,1.5))
 legend("topright", inset=c(-.225,-.05), legend=levels(Site), pch=points, cex =1.9, col=c("darkgrey"),pt.bg = colors,  ncol=1, bty = "n")
-ordispider(PCA_coord,choices=c(1,2),Site,col=c("blue3","orange","forestgreen","orchid4"), label = F,cex=1.5,lwd=1)
 ordiellipse(PCA_coord,choices=c(1,2),Site, col.axis = 'blue', col.lab = 'red',label=F,cex=1.5,lwd=2.5,kind="sd",border=c("blue3","orange","forestgreen","orchid4"),col=c("blue3","orange","forestgreen","orchid4"),alpha=20,draw = "polygon")
-ordihull(PCA_coord,choices=c(1,2),Site, col.axis = 'blue', col.lab = 'red',label=F,cex=1.5,lwd=2.5,kind="sd",border=c("blue3","orange","forestgreen","orchid4"),col=c("blue3","orange","forestgreen","orchid4"),alpha=20,draw = "polygon")
 
-
-plot(PCA_coord[,1], PCA_coord[,2], type="n",xlim=c(-10,4),ylim=c(-4,6))
-ordihull(PCA_coord,choices=c(1,2),Site, col=1:4, lwd=3)
-ordiellipse(PCA_coord,choices=c(1,2),Site, col=1:4, kind = "ehull", lwd=3)
-ordiellipse(PCA_coord,choices=c(1,2),Site, col=1:4, draw="polygon")
-ordispider(PCA_coord,choices=c(1,2),Site, col=1:4, label = TRUE)
-points(PCA_coord,choices=c(1,2),pch=21, col="red", bg="yellow", cex=1.3)
-
-
-dim(All_s.pca)
-
-
-Cov_data <- getData(All.Tiles)
-Cov <- Cov_data[ , grepl( "coverage" , names( Cov_data ) ) ]
-Cs_input <- Cov_data[ , grepl( "numCs" , names( Cov_data ) ) ]
-input <- Cs_input/Cov
+##Run adonis on percent methylation data
+input <- percMethylation(All.Tiles,rowids = T)
 head(input)
-colnames(input) <- c("LC1","LC2","LC3","LC4","LC5","LC6","LC7","LC9","LC10","LC11","LC12","LC13","LC14","LC15","LC16","LC17","LC18","LC19","LC20","LF1","LF2","LF3","LF4","LF5","LF6","LF7","LF8","LF9","LF10","LF11","LF12","LF13","LF14","LF15","LF16","LF17","LF18","LF19","LF20","SL3","SL4","SL5","SL6","SL8","SL9","SL10","SL12","SL13","SL14","SL15","SL16","SL17","SL18","SL19","SL20","SL21","SL22","MI1","MI2","MI3","MI4","MI5","MI6","MI7","MI8","MI9","MI10","MI11","MI12","MI13","MI14","MI15","MI16","MI17","MI18","MI19","MI20")
-dim(input)
+adonis2(t(input)~Site,na.rm=T,method="euclidean",permutations = 100000)  
 
-dds.pcoa=pcoa(vegdist(t(input),na.rm=T,method="euclidean"))
-scores=dds.pcoa$vectors
-head(scores)
-# Calculate the percent of variance explained by first two axes
-percent <- dds.pcoa$values$Eigenvalues
-cumulative_percent_variance <- percent / sum(percent)
-cumulative_percent_variance
-sum(cumulative_percent_variance[1:2])
-
-##Run both of these bevause adonis adds terms sequentially, notice
-
-adonis2(t(input)~Site,na.rm=T,method="euclidean",permutations = 10000)  
-
-ordiplot(scores,label=T)
-ordiellipse(scores,as.factor(Site),label=T)
-
-write.csv(All.pool_diffM_Tiles, "All_Diff_100_tile.csv",quote=F)
-write.csv(popSt.diffMeth_Tiles, "LCSL_LFMI_Diff_100_tile.csv",quote=F)
-write.csv(LC_MI.diffMeth_Tiles, "LC_MI_Diff_100_tile.csv",quote=F)
-write.csv(LC_LF.diffMeth_Tiles, "LC_SL_Diff_100_tile.csv",quote=F)
-write.csv(LC_SL.diffMeth_Tiles, "LC_LF_Diff_100_tile.csv",quote=F)
-write.csv(LF_MI.diffMeth_Tiles, "LF_MI_Diff_100_tile.csv",quote=F)
-write.csv(SL_MI.diffMeth_Tiles, "LF_SL_Diff_100_tile.csv",quote=F)
-write.csv(LF_SL.diffMeth_Tiles, "SL_MI_Diff_100_tile.csv",quote=F)
-write.csv(LF.gravid.diffMeth_Tiles, "LF_Gracid_Diff_100_tile.csv",quote=F)
+#write.csv(All.pool_diffM_Tiles, "All_Diff_100_tile.csv",quote=F)
+#write.csv(popSt.diffMeth_Tiles, "LCSL_LFMI_Diff_100_tile.csv",quote=F)
+#write.csv(LC_MI.diffMeth_Tiles, "LC_MI_Diff_100_tile.csv",quote=F)
+#write.csv(LC_LF.diffMeth_Tiles, "LC_SL_Diff_100_tile.csv",quote=F)
+#write.csv(LC_SL.diffMeth_Tiles, "LC_LF_Diff_100_tile.csv",quote=F)
+#write.csv(LF_MI.diffMeth_Tiles, "LF_MI_Diff_100_tile.csv",quote=F)
+#write.csv(SL_MI.diffMeth_Tiles, "LF_SL_Diff_100_tile.csv",quote=F)
+#write.csv(LF_SL.diffMeth_Tiles, "SL_MI_Diff_100_tile.csv",quote=F)
 #
 setwd("~/Dropbox/EpiGBS/METHYLKIT_FINAL_OUT/")
 #save(All.pool_diffM_Tiles,popSt.diffMeth_Tiles,LC_MI.diffMeth_Tiles,LC_LF.diffMeth_Tiles,LC_SL.diffMeth_Tiles,LF_MI.diffMeth_Tiles,SL_MI.diffMeth_Tiles,LF_SL.diffMeth_Tiles,file = "Methylkit_diffMeth_output.RData")
@@ -323,10 +287,6 @@ LF_SL.nonsig =getMethylDiff(LF_SL.diffMeth_Tiles,difference=0,qvalue=1)
 dim(LF_SL.nonsig)
 #1068 Regions
 
-Regions <- c(7172,2134,1588,917,2972,1289,1068)
-mean(Regions)
-mean(DMRs)
-100*(89/2448)
 
 PopSt_sig <- as(popSt.15_sig,"GRanges")
 LC_MI_sig <- as(LC_MI.15_sig,"GRanges")
@@ -407,9 +367,6 @@ dim(All_NS4)
 library(limma)
 
 plotMDS(All_NS4[,c(2:7)])
-
-?percMethylation
-test <- percMethylation(SL_MI.obj)
 
 All_s.perc <- percMethylation(All_s.pca)
 popSt.perc <- percMethylation(popSt.pca)
@@ -493,7 +450,7 @@ grid.draw(SL_All_vd)
 grid.newpage();
 grid.draw(All_vd)
 
-
+Pop_Sig <- getData(popSt.15_sig )
 LCMI_Sig <- getData(LC_MI.15_sig)
 LCLF_Sig <- getData(LC_LF.15_sig)
 LCSL_Sig <- getData(LC_SL.15_sig)
@@ -501,7 +458,7 @@ LFMI_Sig <- getData(LF_MI.15_sig)
 LFSL_Sig <- getData(LF_SL.15_sig)
 SLMI_Sig <- getData(SL_MI.15_sig)
 
-
+Pop_Sig$Loci  <- paste(Pop_Sig$chr,Pop_Sig$start,Pop_Sig$end,sep=".")
 LCMI_Sig$Loci <- paste(LCMI_Sig$chr,LCMI_Sig$start,LCMI_Sig$end,sep=".")
 LCLF_Sig$Loci <- paste(LCLF_Sig$chr,LCLF_Sig$start,LCLF_Sig$end,sep=".")
 LCSL_Sig$Loci <- paste(LCSL_Sig$chr,LCSL_Sig$start,LCSL_Sig$end,sep=".")
@@ -744,12 +701,15 @@ LF_MI_per_chr = diffMethPerChr(LF_MI.diffMeth_Tiles,plot = TRUE,qvalue.cutoff = 
 LF_SL_per_chr = diffMethPerChr(SL_MI.diffMeth_Tiles,plot = TRUE,qvalue.cutoff = 0.05, meth.cutoff =15)
 SL_MI_per_chr = diffMethPerChr(LF_SL.diffMeth_Tiles,plot = TRUE,qvalue.cutoff = 0.05, meth.cutoff =15)
 
+library(GenomicFeatures)
+library(rtracklayer)
 #Use the GFF file available from NCBI GCF_002022765.2_C_virginica-3.0_genomic.gff
 #Cvirginica_txDB <- makeTxDbFromGFF("~/Dropbox/CVirginica_genome/GCF_002022765.2_C_virginica-3.0_genomic.gff")
 #saveDb(Cvirginica_txDB, file="Cvirginica_txDB.sqlite")
-
+Cvirginica_txDB <- makeTxDbFromGFF("~/Dropbox/CVirginica_genome/GCF_002022765.2_C_virginica-3.0_genomic.gff")
 Cvirginica_txDB <- loadDb("Cvirginica_txDB.sqlite")
 CVirginica_ref <-asBED(Cvirginica_txDB)
+
 
 PopSt_nonsig_achr <-assignChromosomeRegion(PopSt_nonsig, nucleotideLevel=FALSE, 
                                       precedence=c("Promoters", "immediateDownstream", 
@@ -1032,6 +992,7 @@ PopSt_sig_Diff <- bedgraph(popSt.15_sig,col.name =c("pvalue", "qvalue", "meth.di
 PopSt_sig_Diff$Positon <- paste(PopSt_sig_Diff$chr,PopSt_sig_Diff$start,PopSt_sig_Diff$end, sep = "_") 
 PopSt_sig_for_annot <- merge(All_probes,PopSt_sig_Diff, by = "Positon",all.y=T)
 PopSt_sig_annot <- merge(PopSt_sig_for_annot,CV_Gene_Annotations_Final, by ="ID",all.x=T)
+dim(PopSt_sig_annot)
 #write.csv(PopSt_sig_annot,"K2_PopSt_sig_annot.csv")
 #Now use nonsignificant list for Mann-Whiteney U Test
 PopSt_nonsig_Diff <- bedgraph(popSt.nonsig,col.name =c("pvalue", "qvalue", "meth.diff"))
@@ -1478,6 +1439,375 @@ plot(LCSL_meth_and_Fst$LCSL.score.meth.diff,LCSL_meth_and_Fst$AMOVA.Fst)
 plot(LCMI_meth_and_Fst$LCMI.score.meth.diff,LCMI_meth_and_Fst$AMOVA.Fst)
 plot(LCLF_meth_and_Fst$LCLF.score.meth.diff,LCLF_meth_and_Fst$AMOVA.Fst)
 
+
+###This identifies regions that are from low expression in popoulation 1 and higher expression in population 2 or vice-versa.
+
+Pop_loci <- percMethylation(popStructur.Tiles,rowids = TRUE)
+head(Pop_loci)
+
+Pop_DMR <- getData(popSt.nonsig)
+Pop_DMR$loci <- paste(Pop_DMR$chr,Pop_DMR$start,Pop_DMR$end,sep=".")
+row.names(Pop_DMR) <- Pop_DMR$loci
+Pop_DMR$loci  = NULL
+Pop_DMR <- Pop_DMR[,c(5:7)]
+head(Pop_DMR)
+
+Pop_data <- merge(Pop_DMR,Pop_loci,by="row.names")
+Pop_data_keep <- Pop_data$qvalue <= 0.05 & abs(Pop_data$meth.diff) >= 15
+Pop_data_sig <- Pop_data[Pop_data_keep,]
+colnames(Pop_data_sig) <- c("Row.names","pvalue","qvalue","meth.diff","pop_1","pop_1","pop_1","pop_1","pop_1","pop_1","pop_1",
+                            "pop_1","pop_1","pop_1","pop_1","pop_1","pop_1","pop_1","pop_1","pop_1","pop_1","pop_1",
+                            "pop_1","pop_2","pop_2","pop_2","pop_2","pop_2","pop_2","pop_2","pop_2","pop_2","pop_2",
+                            "pop_2","pop_2","pop_2","pop_2","pop_2","pop_2","pop_2","pop_2","pop_2","pop_2","pop_1",
+                            "pop_1","pop_1","pop_1","pop_1","pop_1","pop_1","pop_1","pop_1","pop_1","pop_1","pop_1",
+                            "pop_1","pop_1","pop_1","pop_1","pop_1","pop_1","pop_2","pop_2","pop_2","pop_2","pop_2",
+                            "pop_2","pop_2","pop_2","pop_2","pop_2","pop_2","pop_2","pop_2","pop_2","pop_2","pop_2","pop_2","pop_2","pop_2","pop_2")
+colnames(Pop_data_sig)
+dim(Pop_data_sig)
+Pop_data_sig <- Pop_data_sig[,c(1:23,44:61,24:43,62:81)]
+head(Pop_data_sig)
+Pop_data_sig$pop_1_mean <- rowMeans(Pop_data_sig[,c(5:41)],na.rm=T)
+Pop_data_sig$pop_2_mean <- rowMeans(Pop_data_sig[,c(42:81)],na.rm=T)
+head(Pop_data_sig)
+Pop_data_sig$mean_diff <- Pop_data_sig$pop_2_mean - Pop_data_sig$pop_1_mean
+plot(Pop_data_sig$meth.diff~Pop_data_sig$mean_diff)
+
+Pop_15_0 <- Pop_data_sig$pop_2_mean <=10 & Pop_data_sig$pop_1_mean >=25 |  Pop_data_sig$pop_1_mean <=10 & Pop_data_sig$pop_2_mean >=25
+Pop_15_0 <- Pop_data_sig[Pop_15_0,]
+head(Pop_15_0)
+All_probes_annot$Row.names <- paste(All_probes_annot$Chromosome,All_probes_annot$Start,All_probes_annot$End,sep=".")
+Pop_15_0_annot <- merge(Pop_15_0,All_probes_annot,by="Row.names")
+View(Pop_15_0_annot)
+
+
+
+##########THIS LOOKS AT Fst distribution
+
+library(readxl)
+library(readr)
+
+setwd("~/Dropbox/EpiGBS/New_stacks/STRUCTURE_p2/")
+
+LF_LC_Fst <- read.delim("populations.fst_LC-LF.tsv")
+LF_MI_Fst <- read.delim("populations.fst_LF-MI.tsv")
+MI_LC_Fst <- read.delim("populations.fst_LC-MI.tsv")
+SL_LC_Fst <- read.delim("populations.fst_LC-SL.tsv")
+SL_LF_Fst <- read.delim("populations.fst_LF-SL.tsv")
+SL_MI_Fst <- read.delim("populations.fst_MI-SL.tsv")
+
+LF_LC_Fst$Position <- paste(LF_LC_Fst$Chr,LF_LC_Fst$BP,sep="_")
+LF_MI_Fst$Position <- paste(LF_MI_Fst$Chr,LF_MI_Fst$BP,sep="_")
+MI_LC_Fst$Position <- paste(MI_LC_Fst$Chr,MI_LC_Fst$BP,sep="_")
+SL_MI_Fst$Position <- paste(SL_MI_Fst$Chr,SL_MI_Fst$BP,sep="_")
+SL_LC_Fst$Position <- paste(SL_LC_Fst$Chr,SL_LC_Fst$BP,sep="_")
+SL_LF_Fst$Position <- paste(SL_LF_Fst$Chr,SL_LF_Fst$BP,sep="_")
+
+LF_LC_Fst2 <- LF_LC_Fst[,c(18,8,14,15)]
+LF_MI_Fst2 <- LF_MI_Fst[,c(18,8,14,15)]
+MI_LC_Fst2 <- MI_LC_Fst[,c(18,8,14,15)]
+SL_MI_Fst2 <- SL_MI_Fst[,c(18,8,14,15)]
+SL_LC_Fst2 <- SL_LC_Fst[,c(18,8,14,15)]
+SL_LF_Fst2 <- SL_LF_Fst[,c(18,8,14,15)]
+
+dim(LF_LC_Fst2)
+colnames(LF_LC_Fst2) <- c("Pos","LF_LC_AMOVA.fst","LF_LC_Corrected_AMOVA.fst","LF_LC_Smoothed_AMOVA.fst")
+colnames(LF_MI_Fst2) <- c("Pos","LF_MI_AMOVA.fst","LF_MI_Corrected_AMOVA.fst","LF_MI_Smoothed_AMOVA.fst")
+colnames(MI_LC_Fst2) <- c("Pos","MI_LC_AMOVA.fst","MI_LC_Corrected_AMOVA.fst","MI_LC_Smoothed_AMOVA.fst")
+colnames(SL_MI_Fst2) <- c("Pos","SL_MI_AMOVA.fst","SL_MI_Corrected_AMOVA.fst","SL_MI_Smoothed_AMOVA.fst")
+colnames(SL_LC_Fst2) <- c("Pos","SL_LC_AMOVA.fst","SL_LC_Corrected_AMOVA.fst","SL_LC_Smoothed_AMOVA.fst")
+colnames(SL_LF_Fst2) <- c("Pos","SL_LF_AMOVA.fst","SL_LF_Corrected_AMOVA.fst","SL_LF_Smoothed_AMOVA.fst")
+
+
+ALL_LC_Fst <- merge(LF_LC_Fst2,MI_LC_Fst2, by = "Pos",all=T)
+colnames(ALL_LC_Fst)
+ALL_LC_Fst2 <- merge(ALL_LC_Fst,SL_LC_Fst2, by = "Pos",all=T)
+head(ALL_LC_Fst2)
+LC_Fst_mean <-as.data.frame(ALL_LC_Fst2[,c(3,6,9)])
+ALL_LC_Fst2$LC_mean_Fst <- rowMeans(LC_Fst_mean[sapply(LC_Fst_mean, is.numeric)],na.rm=T)
+mean(ALL_LC_Fst2$LC_mean_Fst)
+dim(ALL_LC_Fst2)
+
+ALL_MI_Fst <- merge(LF_MI_Fst2,MI_LC_Fst2, by = "Pos",all=T)
+colnames(ALL_MI_Fst)
+ALL_MI_Fst2 <- merge(ALL_MI_Fst,SL_MI_Fst2, by = "Pos",all=T)
+colnames(ALL_MI_Fst2)
+MI_Fst_mean <-as.data.frame(ALL_MI_Fst2[,c(2,5,8)])
+ALL_MI_Fst2$MI_mean_Fst <- rowMeans(MI_Fst_mean[sapply(MI_Fst_mean, is.numeric)],na.rm=T)
+dim(ALL_MI_Fst2)
+
+ALL_LF_Fst <- merge(LF_MI_Fst2,LF_LC_Fst2, by = "Pos",all=T)
+colnames(ALL_LF_Fst)
+ALL_LF_Fst2 <- merge(ALL_LF_Fst,SL_LF_Fst2, by = "Pos",all=T)
+colnames(ALL_MI_Fst2)
+LF_Fst_mean <-as.data.frame(ALL_LF_Fst2[,c(2,5,8)])
+ALL_LF_Fst2$LF_mean_Fst <- rowMeans(LF_Fst_mean[sapply(LF_Fst_mean, is.numeric)],na.rm=T)
+dim(ALL_LF_Fst2)
+
+
+ALL_SL_Fst <- merge(SL_LC_Fst2,SL_LF_Fst2, by = "Pos",all=T)
+colnames(ALL_SL_Fst)
+ALL_SL_Fst2 <- merge(ALL_SL_Fst,SL_MI_Fst2, by = "Pos",all=T)
+colnames(ALL_SL_Fst2)
+SL_Fst_mean <-as.data.frame(ALL_SL_Fst2[,c(2,5,8)])
+ALL_SL_Fst2$SL_mean_Fst <- rowMeans(SL_Fst_mean[sapply(SL_Fst_mean, is.numeric)],na.rm=T)
+dim(ALL_SL_Fst2)
+
+
+All <- merge(ALL_LC_Fst2,ALL_MI_Fst2, by = "Pos",all=T)
+colnames(All)
+ALl <- merge(All,ALL_LF_Fst2, by = "Pos",all=T)
+colnames(ALl)
+ALL2 <- merge(ALl,ALL_SL_Fst2, by = "Pos",all=T)
+
+colnames(ALL2)
+dim(ALL2)
+temp <- ALL2
+colnames(temp)
+Fst_reduced <- temp[,c(1,3,6,9,13,29,39)]
+colnames(Fst_reduced)
+colnames(Fst_reduced) <- c("Pos","LF_LC_Corrected_AMOVA.fst","MI_LC_Corrected_AMOVA.fst","SL_LC_Corrected_AMOVA.fst",
+                           "LF_MI_Corrected_AMOVA.fst","SL_LF_Corrected_AMOVA.fst","SL_MI_Corrected_AMOVA.fst"  )
+
+head(Fst_reduced)
+Fst_reduced$Fst_mean <- apply(Fst_reduced[,c(2:7)],1,mean,na.rm=T)
+
+Fst_reduced2 = Fst_reduced[!duplicated(Fst_reduced$Pos),]
+Fst_reduced2_keep <- complete.cases(Fst_reduced2)
+Fst_reduced2 <- Fst_reduced2[Fst_reduced2_keep,]
+
+dim(Fst_reduced2)
+head(Fst_reduced2)
+
+
+All_Fst_Seqmonk_annotations <- read.delim("~/Dropbox/EpiGBS/New_stacks/CONSTRUCT/All_Fst_Seqmonk_annotations.txt")
+head(All_Fst_Seqmonk_annotations)
+head(Fst_reduced2)
+All_Fst_Seqmonk_annotations$Pos <- paste(All_Fst_Seqmonk_annotations$Chromosome,All_Fst_Seqmonk_annotations$Start,sep="_")
+Fst_reduced3 <- merge(Fst_reduced2,All_Fst_Seqmonk_annotations,by="Pos")
+dim(Fst_reduced3)
+
+
+#Calculate Pst
+EpiGBS_out_for_Pst <- percMethylation(popStructur.Tiles,rowids=T)
+dim(EpiGBS_out_for_Pst)              
+colnames(EpiGBS_out_for_Pst)
+
+CV_Gene_Annotations_Final <- read.delim("~/Dropbox/Kyle_TagSeq/CV_Gene_Annotations_Final.txt")
+colnames(CV_Gene_Annotations_Final)[1] <- c("ID")
+library(readr)
+All_probes <- read_delim("~/Dropbox/EpiGBS/METHYLKIT_FINAL_OUT/All_probes_Seqmonk.txt", "\t", escape_double = FALSE, trim_ws = TRUE)
+All_probes <- as.data.frame(All_probes)
+dim(All_probes)
+#7433 12
+All_probes$Positon <- paste(All_probes$Chromosome,All_probes$Start,All_probes$End, sep = ".")
+row.names(All_probes) <- All_probes$Positon
+EpiGBS_out_for_Pst_annot <- merge(EpiGBS_out_for_Pst,All_probes,by="row.names")
+colnames(EpiGBS_out_for_Pst_annot)
+LC <-  EpiGBS_out_for_Pst_annot[,c(2:20)]
+MI <-  EpiGBS_out_for_Pst_annot[,c(59:78)]
+LF <-  EpiGBS_out_for_Pst_annot[,c(21:40)]
+SL <-  EpiGBS_out_for_Pst_annot[,c(41:58)]
+
+LCLF_all <-  EpiGBS_out_for_Pst_annot[,c(2:20,21:40)]
+LCMI_all <-  EpiGBS_out_for_Pst_annot[,c(2:20,59:78)]
+LCSL_all <-  EpiGBS_out_for_Pst_annot[,c(2:20,41:58)]
+LFSL_all <-  EpiGBS_out_for_Pst_annot[,c(21:40,41:58)]
+LFMI_all <-  EpiGBS_out_for_Pst_annot[,c(21:40,59:78)]
+SLMI_all <-  EpiGBS_out_for_Pst_annot[,c(41:58,59:78)]
+
+LC_mean <- apply(LC,1,mean,na.rm=T)
+LC_mean <- LC_mean/100
+range(LC_mean,na.rm = T)
+MI_mean <- apply(MI,1,mean,na.rm=T)
+MI_mean <- MI_mean/100
+range(MI_mean,na.rm = T)
+LF_mean <- apply(LF,1,mean,na.rm=T)
+LF_mean <- LF_mean/100
+range(LF_mean,na.rm = T)
+SL_mean <- apply(SL,1,mean,na.rm=T)
+SL_mean <- SL_mean/100
+range(SL_mean,na.rm = T)
+
+LCLF_all_mean <- apply(LCLF_all,1,mean,na.rm=T)
+LCMI_all_mean <- apply(LCMI_all,1,mean,na.rm=T)
+LCSL_all_mean <- apply(LCSL_all,1,mean,na.rm=T)
+LFSL_all_mean <- apply(LFSL_all,1,mean,na.rm=T)
+LFMI_all_mean <- apply(LFMI_all,1,mean,na.rm=T)
+SLMI_all_mean <- apply(SLMI_all,1,mean,na.rm=T)
+
+LCLF_all_mean <- LCLF_all_mean/100
+LCMI_all_mean <- LCMI_all_mean/100
+LCSL_all_mean <- LCSL_all_mean/100
+LFSL_all_mean <- LFSL_all_mean/100
+LFMI_all_mean <- LFMI_all_mean/100
+SLMI_all_mean <- SLMI_all_mean/100
+
+Info <- EpiGBS_out_for_Pst_annot[,c(1,80:91)]
+LCLF_Pst <- cbind(Info,LC_mean,LCLF_all_mean)
+LCLF_Pst <- as.data.frame(LCLF_Pst)
+LCLF_Pst$LCLF_Pst <- ((LCLF_Pst$LCLF_all_mean-LCLF_Pst$LC_mean)/(LCLF_Pst$LCLF_all_mean))
+LCLF_Pst2 <- LCLF_Pst
+LCLF_Pst2$LCLF_Pst[LCLF_Pst2$LCLF_Pst < 0] <- 0
+LCLF_Pst2_keep <- LCLF_Pst2$LCLF_Pst < 1
+LCLF_Pst3 <- LCLF_Pst2[LCLF_Pst2_keep,]
+dim(LCLF_Pst2)
+dim(LCLF_Pst3)
+LCLF_Pst4 = LCLF_Pst3[order(LCLF_Pst3[,'Positon'],LCLF_Pst3[,'LCLF_Pst']),]
+dim(LCLF_Pst4)
+LCLF_Pst4 = LCLF_Pst4[!duplicated(LCLF_Pst4$Positon),]
+dim(LCLF_Pst4)
+mean(LCLF_Pst4$LCLF_Pst,na.rm=T)
+hist(LCLF_Pst4$LCLF_Pst, main = "Lake Calcasieu - Lake Fortuna mean Pst = 0.1003737",breaks= 10)
+
+LCMI_Pst <- cbind(Info,LC_mean,LCMI_all_mean)
+LCMI_Pst <- as.data.frame(LCMI_Pst)
+LCMI_Pst$LCMI_Pst <- ((LCMI_Pst$LCMI_all_mean-LCMI_Pst$LC_mean)/(LCMI_Pst$LCMI_all_mean))
+LCMI_Pst2 <- LCMI_Pst
+LCMI_Pst2$LCMI_Pst[LCMI_Pst2$LCMI_Pst < 0] <- 0
+LCMI_Pst2_keep <- LCMI_Pst2$LCMI_Pst < 1
+LCMI_Pst3 <- LCMI_Pst2[LCMI_Pst2_keep,]
+dim(LCMI_Pst2)
+dim(LCMI_Pst3)
+LCMI_Pst4 = LCMI_Pst3[order(LCMI_Pst3[,'Positon'],LCMI_Pst3[,'LCMI_Pst']),]
+dim(LCMI_Pst4)
+LCMI_Pst4 = LCMI_Pst4[!duplicated(LCMI_Pst4$Positon),]
+dim(LCMI_Pst4)
+mean(LCMI_Pst4$LCMI_Pst,na.rm=T)
+hist(LCMI_Pst4$LCMI_Pst, main = "Lake Calcasieu - Lake Fortuna mean Pst = 0.1266581",breaks= 10)
+
+LCSL_Pst <- cbind(Info,LC_mean,LCSL_all_mean)
+LCSL_Pst <- as.data.frame(LCSL_Pst)
+LCSL_Pst$LCSL_Pst <- ((LCSL_Pst$LCSL_all_mean-LCSL_Pst$LC_mean)/(LCSL_Pst$LCSL_all_mean))
+LCSL_Pst2 <- LCSL_Pst
+head(LCSL_Pst2)
+LCSL_Pst2$LCSL_Pst[LCSL_Pst2$LCSL_Pst < 0] <- 0
+LCSL_Pst2_keep <- LCSL_Pst2$LCSL_Pst < 1
+LCSL_Pst3 <- LCSL_Pst2[LCSL_Pst2_keep,]
+dim(LCSL_Pst2)
+dim(LCSL_Pst3)
+LCSL_Pst4 = LCSL_Pst3[order(LCSL_Pst3[,'Positon'],LCSL_Pst3[,'LCSL_Pst']),]
+dim(LCSL_Pst4)
+LCSL_Pst4 = LCSL_Pst4[!duplicated(LCSL_Pst4$Positon),]
+dim(LCSL_Pst4)
+mean(LCSL_Pst4$LCSL_Pst,na.rm=T)
+hist(LCSL_Pst4$LCSL_Pst, main = "Lake Calcasieu - Lake Fortuna mean Pst = 0.1039501",breaks= 10)
+
+LFSL_Pst <- cbind(Info,LF_mean,LFSL_all_mean)
+LFSL_Pst <- as.data.frame(LFSL_Pst)
+LFSL_Pst$LFSL_Pst <- ((LFSL_Pst$LFSL_all_mean-LFSL_Pst$LF_mean)/(LFSL_Pst$LFSL_all_mean))
+LFSL_Pst2 <- LFSL_Pst
+LFSL_Pst2$LFSL_Pst[LFSL_Pst2$LFSL_Pst < 0] <- 0
+LFSL_Pst2_keep <- LFSL_Pst2$LFSL_Pst < 1
+LFSL_Pst3 <- LFSL_Pst2[LFSL_Pst2_keep,]
+dim(LFSL_Pst2)
+dim(LFSL_Pst3)
+LFSL_Pst4 = LFSL_Pst3[order(LFSL_Pst3[,'Positon'],LFSL_Pst3[,'LFSL_Pst']),]
+dim(LFSL_Pst4)
+LFSL_Pst4 = LFSL_Pst4[!duplicated(LFSL_Pst4$Positon),]
+dim(LFSL_Pst4)
+mean(LFSL_Pst4$LFSL_Pst,na.rm=T)
+hist(LFSL_Pst4$LFSL_Pst, main = "Lake Calcasieu - Lake Fortuna mean Pst = 0.0996934",breaks= 10)
+
+LFMI_Pst <- cbind(Info,LF_mean,LFMI_all_mean)
+LFMI_Pst <- as.data.frame(LFMI_Pst)
+LFMI_Pst$LFMI_Pst <- ((LFMI_Pst$LFMI_all_mean-LFMI_Pst$LF_mean)/(LFMI_Pst$LFMI_all_mean))
+LFMI_Pst2 <- LFMI_Pst
+LFMI_Pst2$LFMI_Pst[LFMI_Pst2$LFMI_Pst < 0] <- 0
+LFMI_Pst2_keep <- LFMI_Pst2$LFMI_Pst < 1
+LFMI_Pst3 <- LFMI_Pst2[LFMI_Pst2_keep,]
+dim(LFMI_Pst2)
+dim(LFMI_Pst3)
+LFMI_Pst4 = LFMI_Pst3[order(LFMI_Pst3[,'Positon'],LFMI_Pst3[,'LFMI_Pst']),]
+dim(LFMI_Pst4)
+LFMI_Pst4 = LFMI_Pst4[!duplicated(LFMI_Pst4$Positon),]
+dim(LFMI_Pst4)
+mean(LFMI_Pst4$LFMI_Pst,na.rm=T)
+hist(LFMI_Pst4$LFMI_Pst, main = "Lake Calcasieu - Lake Fortuna mean Pst = 0.125229",breaks= 10)
+
+SLMI_Pst <- cbind(Info,SL_mean,SLMI_all_mean)
+SLMI_Pst <- as.data.frame(SLMI_Pst)
+SLMI_Pst$SLMI_Pst <- ((SLMI_Pst$SLMI_all_mean-SLMI_Pst$SL_mean)/(SLMI_Pst$SLMI_all_mean))
+SLMI_Pst2 <- SLMI_Pst
+SLMI_Pst2$SLMI_Pst[SLMI_Pst2$SLMI_Pst < 0] <- 0
+SLMI_Pst2_keep <- SLMI_Pst2$SLMI_Pst < 1
+SLMI_Pst3 <- SLMI_Pst2[SLMI_Pst2_keep,]
+dim(SLMI_Pst2)
+dim(SLMI_Pst3)
+SLMI_Pst4 = SLMI_Pst3[order(SLMI_Pst3[,'Positon'],SLMI_Pst3[,'SLMI_Pst']),]
+dim(SLMI_Pst4)
+SLMI_Pst4 = SLMI_Pst4[!duplicated(SLMI_Pst4$Positon),]
+dim(SLMI_Pst4)
+mean(SLMI_Pst4$SLMI_Pst,na.rm=T)
+hist(SLMI_Pst4$SLMI_Pst, main = "Lake Calcasieu - Lake Fortuna mean Pst = 0.1096666",breaks= 10)
+
+LCLF.Pst <- mean(LCLF_Pst4$LCLF_Pst,na.rm=T)
+LCMI.Pst <- mean(LCMI_Pst4$LCMI_Pst,na.rm=T)
+LCSL.Pst <- mean(LCSL_Pst4$LCSL_Pst,na.rm=T)
+LFSL.Pst <- mean(LFSL_Pst4$LFSL_Pst,na.rm=T)
+LFMI.Pst <- mean(LFMI_Pst4$LFMI_Pst,na.rm=T)
+SLMI.Pst <- mean(SLMI_Pst4$SLMI_Pst,na.rm=T)
+
+Pop_Pst <- merge(LCLF_Pst4,LCMI_Pst4,by = "Positon")
+colnames(Pop_Pst)
+Pop_Pst <- Pop_Pst[,c(1:12,16,31)]
+head(Pop_Pst)
+Pop_Pst <- merge(Pop_Pst,LCSL_Pst4, by = "Positon")
+head(Pop_Pst)
+Pop_Pst <- Pop_Pst[,c(1:14,29)]
+head(Pop_Pst)
+Pop_Pst <- merge(Pop_Pst,LFSL_Pst4, by = "Positon")
+Pop_Pst <- Pop_Pst[,c(1:15,30)]
+head(Pop_Pst)
+Pop_Pst <- merge(Pop_Pst,LFMI_Pst4, by = "Positon")
+Pop_Pst <- Pop_Pst[,c(1:16,31)]
+head(Pop_Pst)
+Pop_Pst <- merge(Pop_Pst,SLMI_Pst4, by = "Positon")
+Pop_Pst <- Pop_Pst[,c(1:17,32)]
+dim(Pop_Pst)
+
+Pop_Pst$LC_mean_Pst <- rowMeans(Pop_Pst[,c(13:15)],na.rm=T)
+Pop_Pst$LF_mean_Pst <- rowMeans(Pop_Pst[,c(13,16,17)],na.rm=T)
+Pop_Pst$SL_mean_Pst <- rowMeans(Pop_Pst[,c(15,17,18)],na.rm=T)
+Pop_Pst$MI_mean_Pst <- rowMeans(Pop_Pst[,c(14,17,18)],na.rm=T)
+dim(Fst_reduced3)
+Fst_reduced3$LF_mean_Fst <- apply(Fst_reduced3[,c(2,5,6)],1,mean,na.rm=T)
+Fst_reduced3$LC_mean_Fst <- apply(Fst_reduced3[,c(2,3,4)],1,mean,na.rm=F)
+Fst_reduced3$MI_mean_Fst <- apply(Fst_reduced3[,c(3,5,7)],1,mean,na.rm=F)
+Fst_reduced3$SL_mean_Fst <- apply(Fst_reduced3[,c(4,6,7)],1,mean,na.rm=F)
+head(Fst_reduced3)
+colnames(Pop_Pst)[8] <- c("ID")
+Pst_and_Fst <- merge(Fst_reduced3,Pop_Pst,by="ID")
+head(Pop_Pst)
+
+dim(Pst_and_Fst)
+mean(Pst_and_Fst$MI_mean_Fst,na.rm=T)
+
+par(mfrow=c(2,2))
+plot(Pst_and_Fst$SL_mean_Pst,Pst_and_Fst$SL_mean_Fst,xlim=c(0,.8), ylim=c(0,0.5),xlab="SL mean Pst",ylab="SL mean Fst",main="Sister Lake")
+points(0.1017267,0.01793079,col='red',pch=16)
+plot(Pst_and_Fst$LF_mean_Pst,Pst_and_Fst$LF_mean_Fst,xlim=c(0,.8), ylim=c(0,0.5),xlab="LF mean Pst",ylab="LF mean Fst",main="Lake Fortuna")
+points(0.09812395,0.02052339,col='red',pch=16)
+plot(Pst_and_Fst$LC_mean_Pst,Pst_and_Fst$LC_mean_Fst,xlim=c(0,1), ylim=c(0,0.5),xlab="LC mean Pst",ylab="LC mean Fst",,main="Lake Calcasieu")
+points(0.09982124,0.01673983,col='red',pch=16)
+plot(Pst_and_Fst$MI_mean_Pst,Pst_and_Fst$MI_mean_Fst,xlim=c(0,1), ylim=c(0,0.5),xlab="VB mean Pst",ylab="VB mean Fst",main="Vermillion Bay")
+points(0.1096192,0.01627589,col='red',pch=16)
+
+Pst <- rowMeans(Pst_and_Fst[,c(36:41)],na.rm=T)
+mean(Pst)
+
+Fst <- rowMeans(Pst_and_Fst[,c(3:8)],na.rm=T)
+mean(Fst)
+par(mar=c(5.1,5.1,4.1,2.1))
+plot(Pst_and_Fst$SL_mean_Pst,Pst_and_Fst$SL_mean_Fst,xlim=c(0,1), ylim=c(0,0.5),xlab="Pst",ylab="Fst",cex.lab=1.5,cex.axis=1.5)
+points(Pst_and_Fst$LF_mean_Pst,Pst_and_Fst$LF_mean_Fst)
+points(Pst_and_Fst$LC_mean_Pst,Pst_and_Fst$LC_mean_Fst)
+points(Pst_and_Fst$MI_mean_Pst,Pst_and_Fst$MI_mean_Fst)
+points(mean(Pst),mean(Fst),col='red',pch=20,cex=1.5)
+abline(v=mean(Pst),col='grey20',lty=2)
+abline(v=mean(Pst),col='grey20',lty=2)
+
+
+
 # GO_MWU uses continuous measure of significance (such as fold-change or -log(p-value) ) to identify GO categories that are significantly enriches with either up- or down-regulated genes. The advantage - no need to impose arbitrary significance cutoff.
 
 # If the measure is binary (0 or 1) the script will perform a typical "GO enrichment" analysis based Fisher's exact test: it will show GO categories over-represented among the genes that have 1 as their measure. 
@@ -1527,7 +1857,6 @@ setwd("/Users/Kevin_Work_Mac/Dropbox/EpiGBS/METHYLKIT_FINAL_OUT/GO_MWU/")
 #CC 1
 
 
-
 input="SLMI_nonsig_GeneBody_GO_MWU.csv" # two columns of comma-separated values: gene id, continuous measure of significance. To perform standard GO enrichment analysis based on Fisher's exact test, use binary measure (0 or 1, i.e., either sgnificant or not).
 goAnnotations="GO_MWU_background_pairwise_GeneBody.tab" # two-column, tab-delimited, one line per gene, multiple GO terms separated by semicolon. If you have multiple lines per gene, use nrify_GOtable.pl prior to running this script.
 goDatabase="go.obo" # download from http://www.geneontology.org/GO.downloads.ontology.shtml
@@ -1545,91 +1874,3 @@ gomwuStats(input, goDatabase, goAnnotations, goDivision,
            #	Module=TRUE,Alternative="g" # un-remark this if you are analyzing a SIGNED WGCNA moduSle (values: 0 for not in module genes, kME for in-module genes). In the call to gomwuPlot below, specify absValue=0.001 (count number of "good genes" that fall into the module)
            #	Module=TRUE # un-remark this if you are analyzing an UNSIGNED WGCNA module 
 )
-
-
-##COMPARISONS RESULTS
-
-#LCSL_nonsig_all_GO_MWU.csv
-LCSL_GO_out_1  <- read.delim("~/Dropbox/EpiGBS/METHYLKIT_FINAL_OUT/GO_MWU/MF_LCSL_nonsig_all_GO_MWU.csv")
-LCSL_GO_out_2 <- read.csv("~/Dropbox/EpiGBS/METHYLKIT_FINAL_OUT/GO_MWU/MWU_MF_LCSL_nonsig_all_GO_MWU.csv", sep="")
-LCSL_GO_out <- merge(LCSL_GO_out_1,LCSL_GO_out_2,by="name")
-keep <- LCSL_GO_out$pval <= 0.10
-LCSL_GO_out <- LCSL_GO_out[keep,]
-colnames(LCSL_GO_out)[4] <- c("ID")
-LCSL_GO_out_annot <- merge(LCSL_GO_out,CV_Gene_Annotations_Final,by="ID")
-View(LCSL_GO_out_annot)
-
-
-getwd()
-head(MWU_MF_LCMI_nonsig_GeneBody_GO_MWU)
-
-tiff("test.tiff", units="in", width=5, height=5, res=300)
-plot(test$pval~Test$p.adj)
-dev.off()
-
-
-
-
-
-MF_pop <- read.delim("~/Dropbox/EpiGBS/METHYLKIT_FINAL_OUT/GO_MWU/MF_PopSt_nonsig_GeneBody_GO_MWU.csv")
-
-CC_LFMI <- read.delim("~/Dropbox/EpiGBS/METHYLKIT_FINAL_OUT/GO_MWU/CC_LFMI_nonsig_GeneBody_GO_MWU.csv")
-
-CC_SLMI <- read.delim("~/Dropbox/EpiGBS/METHYLKIT_FINAL_OUT/GO_MWU/CC_SLMI_nonsig_GeneBody_GO_MWU.csv")
-
-head(MF_pop)
-#This file has the results from the GOMWU test
-MF_pop_MWU_results <- read.csv("~/Dropbox/EpiGBS/METHYLKIT_FINAL_OUT/GO_MWU/MWU_MF_PopSt_nonsig_GeneBody_GO_MWU.csv", sep="")
-head(MF_pop_MWU_results)
-#Let's see what terms are significant
-MF_pop_MWU_results_significant <- MF_pop_MWU_results$p.adj <= 0.05
-table(MF_pop_MWU_results_significant)
-#CC_pink_MFW_results_significant
-#FALSE  TRUE
-#133     2
-
-#OK 2 ontologies were significant let's reduce the file to only show those
-MF_pop_MWU_results_significant <- MF_pop_MWU_results[MF_pop_MWU_results_significant,]
-head(MF_pop_MWU_results_significant)
-
-#delta.rank         pval level nseqs       term                  name      p.adj
-#40        274 9.765862e-05     4     5 GO:0005882 intermediate filament 0.01318391
-#42         98 6.721079e-04     2    30 GO:0005886       plasma membrane 0.04536728
-
-#Now let's look at what sequences were in  intermediate filament
-head(MF_pop)
-CC_LFMI_ex <- CC_LFMI$name == c("extracellular region")
-CC_SLMI_ex <- CC_SLMI$name == c("extracellular region")
-
-#This will show how many sequences we have...on line 1004 we can see that we should expect 5 sequences
-table(CC_LFMI_ex)
-table(CC_SLMI_ex)
-#CC_pink_int_fil
-#FALSE  TRUE
-#3927     5
-
-
-CC_LFMI_ex <- CC_LFMI[CC_LFMI_ex,]
-CC_SLMI_ex <- CC_SLMI[CC_SLMI_ex,] 
-
-colnames(CC_LFMI_ex)[4] <- c("Positon")
-colnames(CC_SLMI_ex)[4] <- c("Positon")
-
-CC_LFMI_ex2 <- merge(CC_LFMI_ex,All_probes_annot,by="Positon")
-CC_SLMI_ex2 <- merge(CC_SLMI_ex,All_probes_annot,by="Positon")
-View(CC_LFMI_ex2)
-View(CC_SLMI_ex2)
-
-#Now subset
-MF_pop_trans <- MF_pop[MF_pop_trans,]
-dim(MF_pop_trans)
-#[1] 5 5
-colnames(MF_pop_trans)[4] <- c("Positon")
-head(All_probes_annot)
-#Let's see what those genes are
-#First read in annotations
-
-MF_pop_trans2 <- merge(MF_pop_trans,All_probes_annot,by="Positon")
-View(MF_pop_trans2)
-
-
